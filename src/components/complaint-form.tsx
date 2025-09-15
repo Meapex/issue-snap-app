@@ -31,6 +31,7 @@ export function ComplaintForm() {
   const [locationDescription, setLocationDescription] =
     useState<string>('My current location');
   const [complaint, setComplaint] = useState<string>('');
+  const [category, setCategory] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
@@ -116,6 +117,7 @@ export function ComplaintForm() {
         locationDescription,
       });
       setComplaint(result.complaintDraft);
+      setCategory(result.category);
       toast({
         title: 'Complaint Drafted!',
         description: 'Review and edit the AI-generated complaint below.',
@@ -162,6 +164,7 @@ export function ComplaintForm() {
         image_url: imageUrl,
         latitude: location.latitude,
         longitude: location.longitude,
+        category: category,
       });
 
       if (insertError) throw insertError;
@@ -186,6 +189,7 @@ export function ComplaintForm() {
     setLocation(null);
     setLocationDescription('My current location');
     setComplaint('');
+    setCategory('');
     setIsGenerating(false);
     setIsSubmitting(false);
     setIsSubmitted(false);

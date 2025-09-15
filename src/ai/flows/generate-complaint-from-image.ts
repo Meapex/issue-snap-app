@@ -17,7 +17,7 @@ const GenerateComplaintFromImageInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
-      'A photo of the issue, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.' 
+      'A photo of the issue, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
   locationDescription: z.string().describe('A description of the location where the issue was photographed.'),
 });
@@ -25,8 +25,11 @@ export type GenerateComplaintFromImageInput = z.infer<
   typeof GenerateComplaintFromImageInputSchema
 >;
 
+const complaintCategories = ['Pothole', 'Graffiti', 'Trash', 'Broken Streetlight', 'Other'] as const;
+
 const GenerateComplaintFromImageOutputSchema = z.object({
   complaintDraft: z.string().describe('A draft complaint generated from the image.'),
+  category: z.enum(complaintCategories).describe('The category of the complaint.'),
 });
 export type GenerateComplaintFromImageOutput = z.infer<
   typeof GenerateComplaintFromImageOutputSchema
@@ -48,10 +51,10 @@ You will receive a photo of the issue and a description of the location where th
 
 Based on the image and location description, generate a draft complaint describing the problem.
 
-Location Description: {{{locationDescription}}}
-Photo: {{media url=photoDataUri}}
+Also, categorize the complaint into one of the following categories: ${complaintCategories.join(', ')}.
 
-Complaint Draft:`, 
+Location Description: {{{locationDescription}}}
+Photo: {{media url=photoDataUri}}`,
 });
 
 const generateComplaintFromImageFlow = ai.defineFlow(

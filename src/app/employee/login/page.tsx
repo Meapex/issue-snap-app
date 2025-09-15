@@ -47,7 +47,8 @@ export default function EmployeeLoginPage() {
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      // The dashboard's onAuthStateChange will handle the redirect
+      // The onAuthStateChange listener on the dashboard will handle the redirect.
+      // We push the route to trigger the listener.
       router.push('/employee/dashboard');
     }
   };

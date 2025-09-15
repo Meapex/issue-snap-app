@@ -50,11 +50,10 @@ export default function EmployeeDashboard() {
 
       if (error) {
         console.error('Error fetching complaints:', error);
-        setLoading(false);
       } else {
         setComplaints(data as Complaint[]);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     const {

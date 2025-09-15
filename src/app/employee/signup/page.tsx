@@ -29,9 +29,15 @@ export default function EmployeeSignupPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // You can add additional data to be stored in the user's metadata
+        data: {
+          full_name: '', // You could add a form field for this
+        }
+      }
     });
 
     if (error) {
@@ -40,7 +46,15 @@ export default function EmployeeSignupPage() {
         title: 'Signup Failed',
         description: error.message,
       });
-    } else {
+    } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+      // This can happen with email provider blocks, etc.
+       toast({
+        variant: 'destructive',
+        title: 'Signup Incomplete',
+        description: 'This email address is already in use by another provider. Please try a different email.',
+      });
+    }
+    else {
       setIsSubmitted(true);
     }
     setIsLoading(false);

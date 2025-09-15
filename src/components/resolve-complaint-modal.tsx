@@ -103,7 +103,7 @@ export function ResolveComplaintModal({
       });
       onComplaintResolved(updatedComplaint as Complaint);
     } catch (error: any) {
-      console.error('Error resolving complaint:', error);
+      console.error('Error resolving complaint:', JSON.stringify(error, null, 2));
       toast({
         variant: 'destructive',
         title: 'Resolution Failed',
@@ -172,4 +172,3 @@ export function ResolveComplaintModal({
     </Dialog>
   );
 }
-

@@ -15,22 +15,21 @@ import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-export default function EmployeeLoginPage() {
-  const router = useRouter();
+export default function EmployeeSignupPage() {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const supabase = createClient();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -38,30 +37,47 @@ export default function EmployeeLoginPage() {
     if (error) {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
+        title: 'Signup Failed',
         description: error.message,
       });
     } else {
-      toast({
-        title: 'Login Successful',
-        description: "You're now logged in.",
-      });
-      router.push('/employee/dashboard');
+      setIsSubmitted(true);
     }
     setIsLoading(false);
   };
+
+  if (isSubmitted) {
+    return (
+      <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl">Check your email</CardTitle>
+            <CardDescription>
+              We've sent a verification link to your email address. Please
+              click the link to complete your registration.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/employee/login" className="w-full">
+              <Button className="w-full">Back to Login</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Employee Login</CardTitle>
+          <CardTitle className="text-2xl">Employee Signup</CardTitle>
           <CardDescription>
-            Enter your credentials to access the complaints dashboard.
+            Create an account to access the complaints dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -81,18 +97,20 @@ export default function EmployeeLoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                placeholder="••••••••"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Login
+              Create Account
             </Button>
           </form>
         </CardContent>
         <CardFooter className="text-sm justify-center">
-          <p>Don't have an account?&nbsp;</p>
-          <Link href="/employee/signup" className="text-primary hover:underline">
-            Sign up
+          <p>Already have an account?&nbsp;</p>
+          <Link href="/employee/login" className="text-primary hover:underline">
+            Log in
           </Link>
         </CardFooter>
       </Card>

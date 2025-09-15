@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Camera } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -28,6 +29,11 @@ export default function Home() {
             <ComplaintForm />
           </CardContent>
         </Card>
+        <div className="mt-4 text-center">
+          <Link href="/employee/login" className="text-sm text-muted-foreground hover:text-primary">
+            Employee Login
+          </Link>
+        </div>
       </div>
     </main>
   );

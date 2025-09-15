@@ -45,6 +45,7 @@ export type Complaint = {
   image_url: string;
   created_at: string;
   category: string;
+  department: string;
   resolution_image_url: string | null;
   resolved_at: string | null;
 };
@@ -69,22 +70,22 @@ export default function EmployeeDashboard() {
   );
   const supabase = createClient();
 
-  const fetchComplaints = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('complaints')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching complaints:', error);
-    } else {
-      setComplaints(data as Complaint[]);
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const fetchComplaints = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching complaints:', error);
+      } else {
+        setComplaints(data as Complaint[]);
+      }
+      setLoading(false);
+    };
+
     fetchComplaints();
   }, [supabase]);
 
@@ -229,6 +230,7 @@ export default function EmployeeDashboard() {
                       <TableHead>Resolution Photo</TableHead>
                       <TableHead>Issue</TableHead>
                       <TableHead>Category</TableHead>
+                      <TableHead>Department</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Submitted At</TableHead>
                       <TableHead>Resolved At</TableHead>
@@ -271,6 +273,7 @@ export default function EmployeeDashboard() {
                             {complaint.category || 'Other'}
                           </Badge>
                         </TableCell>
+                        <TableCell>{complaint.department || 'N/A'}</TableCell>
                         <TableCell>{complaint.location_description}</TableCell>
                         <TableCell>
                           {formatDate(complaint.created_at)}
@@ -321,4 +324,3 @@ export default function EmployeeDashboard() {
     </>
   );
 }
-

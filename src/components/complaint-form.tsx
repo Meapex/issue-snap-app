@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Camera,
   CheckCircle,
+  HardHat,
   Loader2,
   MapPin,
   RefreshCcw,
@@ -19,6 +20,7 @@ import {
 import Image from 'next/image';
 import { ChangeEvent, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { Badge } from './ui/badge';
 
 
 type Location = { latitude: number; longitude: number };
@@ -32,6 +34,7 @@ export function ComplaintForm() {
     useState<string>('My current location');
   const [complaint, setComplaint] = useState<string>('');
   const [category, setCategory] = useState<string>('');
+  const [department, setDepartment] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
@@ -118,6 +121,7 @@ export function ComplaintForm() {
       });
       setComplaint(result.complaintDraft);
       setCategory(result.category);
+      setDepartment(result.department);
       toast({
         title: 'Complaint Drafted!',
         description: 'Review and edit the AI-generated complaint below.',
@@ -165,6 +169,7 @@ export function ComplaintForm() {
         latitude: location.latitude,
         longitude: location.longitude,
         category: category,
+        department: department,
       });
 
       if (insertError) throw insertError;
@@ -190,6 +195,7 @@ export function ComplaintForm() {
     setLocationDescription('My current location');
     setComplaint('');
     setCategory('');
+    setDepartment('');
     setIsGenerating(false);
     setIsSubmitting(false);
     setIsSubmitted(false);
@@ -323,6 +329,24 @@ export function ComplaintForm() {
 
           {(isGenerating || complaint) && (
             <div className="space-y-4">
+              {complaint && (
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-lg">
+                    <HardHat className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <span className="font-semibold text-muted-foreground">Department</span>
+                      <p className="font-bold text-foreground">{department || 'N/A'}</p>
+                    </div>
+                  </div>
+                   <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-lg">
+                    <Wand2 className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <span className="font-semibold text-muted-foreground">Category</span>
+                      <p className="font-bold text-foreground">{category || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <Textarea
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}

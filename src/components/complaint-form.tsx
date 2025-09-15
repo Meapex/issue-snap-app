@@ -5,6 +5,7 @@ import { generateComplaintFromImage } from '@/ai/flows/generate-complaint-from-i
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { createClient } from '@/lib/supabase/client';
 import {
   Camera,
   CheckCircle,
@@ -17,12 +18,15 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { ChangeEvent, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
 
 type Location = { latitude: number; longitude: number };
 
 export function ComplaintForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [locationDescription, setLocationDescription] =
     useState<string>('My current location');
@@ -33,6 +37,7 @@ export function ComplaintForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -45,6 +50,7 @@ export function ComplaintForm() {
         });
         return;
       }
+      setImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUri = e.target?.result as string;
@@ -128,25 +134,55 @@ export function ComplaintForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!imageFile || !complaint || !location) return;
+
     setIsSubmitting(true);
 
-    // TODO: Replace with actual API call to Supabase
-    console.log('Submitting complaint:', {
-      complaint,
-      location,
-      image: imageDataUri?.substring(0, 50) + '...',
-    });
+    try {
+      // 1. Upload image to Supabase Storage
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('complaint-images')
+        .upload(fileName, imageFile);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (uploadError) throw uploadError;
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      // 2. Get public URL for the image
+      const { data: urlData } = supabase.storage
+        .from('complaint-images')
+        .getPublicUrl(fileName);
+
+      const imageUrl = urlData.publicUrl;
+
+      // 3. Insert complaint into Supabase database
+      const { error: insertError } = await supabase.from('complaints').insert({
+        issue: complaint,
+        location: locationDescription,
+        image_url: imageUrl,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      });
+
+      if (insertError) throw insertError;
+
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    } catch (error: any) {
+      console.error('Error submitting complaint:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Submission Failed',
+        description: error.message || 'An unexpected error occurred.',
+      });
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
     setImagePreview(null);
     setImageDataUri(null);
+    setImageFile(null);
     setLocation(null);
     setLocationDescription('My current location');
     setComplaint('');

@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -15,48 +17,67 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-// Mock data for complaints
-const complaints = [
-  {
-    id: '1',
-    issue: 'Large pothole',
-    location: 'Main St & 1st Ave',
-    status: 'New',
-    imageUrl: 'https://picsum.photos/seed/1/150/100',
-    submittedAt: '2024-05-20T10:00:00Z',
-  },
-  {
-    id: '2',
-    issue: 'Broken streetlight',
-    location: 'Oak Ave & 2nd St',
-    status: 'In Progress',
-    imageUrl: 'https://picsum.photos/seed/2/150/100',
-    submittedAt: '2024-05-19T14:30:00Z',
-  },
-  {
-    id: '3',
-    issue: 'Graffiti on wall',
-    location: 'Parkside Dr',
-    status: 'Resolved',
-    imageUrl: 'https://picsum.photos/seed/3/150/100',
-    submittedAt: '2024-05-18T09:15:00Z',
-  },
-    {
-    id: '4',
-    issue: 'Overflowing trash can',
-    location: 'City Hall Plaza',
-    status: 'New',
-    imageUrl: 'https://picsum.photos/seed/4/150/100',
-    submittedAt: '2024-05-20T11:00:00Z',
-  },
-];
+type Complaint = {
+  id: string;
+  issue: string;
+  location: string;
+  status: 'New' | 'In Progress' | 'Resolved';
+  image_url: string;
+  created_at: string;
+};
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleString();
 }
 
 export default function EmployeeDashboard() {
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/employee/login');
+      }
+    };
+
+    const fetchComplaints = async () => {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching complaints:', error);
+      } else {
+        setComplaints(data as Complaint[]);
+      }
+      setLoading(false);
+    };
+
+    checkUser();
+    fetchComplaints();
+  }, [router, supabase]);
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 sm:p-6 lg:p-8">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading complaints...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen w-full flex-col bg-background p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-6xl mx-auto">
@@ -86,7 +107,7 @@ export default function EmployeeDashboard() {
                   <TableRow key={complaint.id}>
                     <TableCell>
                       <Image
-                        src={complaint.imageUrl}
+                        src={complaint.image_url}
                         alt={complaint.issue}
                         width={100}
                         height={66}
@@ -97,7 +118,7 @@ export default function EmployeeDashboard() {
                       {complaint.issue}
                     </TableCell>
                     <TableCell>{complaint.location}</TableCell>
-                    <TableCell>{formatDate(complaint.submittedAt)}</TableCell>
+                    <TableCell>{formatDate(complaint.created_at)}</TableCell>
                     <TableCell>
                       <Badge
                         variant={

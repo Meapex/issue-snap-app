@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -30,7 +31,11 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
-import { ChartTooltipContent } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 
 type Complaint = {
   id: string;
@@ -45,6 +50,13 @@ type Complaint = {
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleString();
 }
+
+const chartConfig = {
+  total: {
+    label: 'Complaints',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
 
 export default function EmployeeDashboard() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -133,8 +145,8 @@ export default function EmployeeDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData.chartData}>
+                <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                  <BarChart accessibilityLayer data={analyticsData.chartData}>
                     <CartesianGrid vertical={false} />
                     <XAxis
                       dataKey="name"
@@ -160,7 +172,7 @@ export default function EmployeeDashboard() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
             {analyticsData.topCategories.map((cat, index) => (

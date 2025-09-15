@@ -13,40 +13,44 @@ export default function EmployeeLayout({
   const supabase = createClient();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        // If there's no session, redirect to login.
-        // The check against the current path prevents a redirect loop on the login page itself.
-        if (window.location.pathname !== '/employee/login' && window.location.pathname !== '/employee/signup') {
+         if (window.location.pathname !== '/employee/login' && window.location.pathname !== '/employee/signup') {
             router.push('/employee/login');
         }
       }
       setLoading(false);
+      if (!sessionChecked) {
+        setSessionChecked(true);
+      }
     });
 
-    // Perform an initial session check
-    const checkInitialSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            if (window.location.pathname !== '/employee/login' && window.location.pathname !== '/employee/signup') {
-                router.push('/employee/login');
-            }
+    // Initial check in case the auth state is already settled
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+       if (!session) {
+         if (window.location.pathname !== '/employee/login' && window.location.pathname !== '/employee/signup') {
+            router.push('/employee/login');
         }
-        setLoading(false);
-    }
-    checkInitialSession();
+      }
+      setLoading(false);
+       if (!sessionChecked) {
+        setSessionChecked(true);
+      }
+    })();
 
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [router, supabase, sessionChecked]);
 
-  if (loading) {
+  if (loading || !sessionChecked) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 sm:p-6 lg:p-8">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

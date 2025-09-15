@@ -169,7 +169,7 @@ export function ComplaintForm() {
       setIsSubmitting(false);
       setIsSubmitted(true);
     } catch (error: any) {
-      console.error('Error submitting complaint:', error);
+      console.error('Error submitting complaint:', JSON.stringify(error, null, 2));
       toast({
         variant: 'destructive',
         title: 'Submission Failed',

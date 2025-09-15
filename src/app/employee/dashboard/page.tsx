@@ -43,6 +43,7 @@ export default function EmployeeDashboard() {
 
   useEffect(() => {
     const fetchComplaints = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from('complaints')
         .select('*')
@@ -56,21 +57,9 @@ export default function EmployeeDashboard() {
       setLoading(false);
     };
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        fetchComplaints();
-      } else {
-        setLoading(false);
-        router.push('/employee/login');
-      }
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [router, supabase]);
+    fetchComplaints();
+    
+  }, [supabase]);
 
   if (loading) {
     return (

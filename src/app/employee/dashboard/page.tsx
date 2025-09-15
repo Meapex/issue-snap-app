@@ -25,7 +25,7 @@ import { useRouter } from 'next/navigation';
 type Complaint = {
   id: string;
   issue: string;
-  location: string;
+  location_description: string;
   status: 'New' | 'In Progress' | 'Resolved';
   image_url: string;
   created_at: string;
@@ -117,7 +117,7 @@ export default function EmployeeDashboard() {
                     <TableCell className="font-medium">
                       {complaint.issue}
                     </TableCell>
-                    <TableCell>{complaint.location}</TableCell>
+                    <TableCell>{complaint.location_description}</TableCell>
                     <TableCell>{formatDate(complaint.created_at)}</TableCell>
                     <TableCell>
                       <Badge

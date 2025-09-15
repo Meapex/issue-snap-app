@@ -158,7 +158,7 @@ export function ComplaintForm() {
       // 3. Insert complaint into Supabase database
       const { error: insertError } = await supabase.from('complaints').insert({
         issue: complaint,
-        location: locationDescription,
+        location_description: locationDescription,
         image_url: imageUrl,
         latitude: location.latitude,
         longitude: location.longitude,

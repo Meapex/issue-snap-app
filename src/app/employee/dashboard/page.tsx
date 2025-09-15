@@ -42,15 +42,6 @@ export default function EmployeeDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/employee/login');
-      }
-    };
-
     const fetchComplaints = async () => {
       const { data, error } = await supabase
         .from('complaints')
@@ -65,8 +56,33 @@ export default function EmployeeDashboard() {
       setLoading(false);
     };
 
-    checkUser();
-    fetchComplaints();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        fetchComplaints();
+      } else if (event === 'SIGNED_OUT') {
+        router.push('/employee/login');
+      }
+    });
+
+    // Check initial session
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        fetchComplaints();
+      } else {
+        router.push('/employee/login');
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [router, supabase]);
 
   if (loading) {

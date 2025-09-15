@@ -84,24 +84,29 @@ export function ResolveComplaintModal({
       const resolvedAt = new Date().toISOString();
 
       // 3. Update complaint in Supabase database
-      const { data: updatedComplaint, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('complaints')
         .update({
           status: 'Resolved',
           resolution_image_url: resolutionImageUrl,
           resolved_at: resolvedAt,
         })
-        .eq('id', complaint.id)
-        .select()
-        .single();
-
+        .eq('id', complaint.id);
+        
       if (updateError) throw updateError;
+      
+      const updatedComplaint: Complaint = {
+        ...complaint,
+        status: 'Resolved',
+        resolution_image_url: resolutionImageUrl,
+        resolved_at: resolvedAt,
+      };
 
       toast({
         title: 'Complaint Resolved!',
         description: 'The issue has been marked as resolved.',
       });
-      onComplaintResolved(updatedComplaint as Complaint);
+      onComplaintResolved(updatedComplaint);
     } catch (error: any) {
       console.error('Error resolving complaint:', JSON.stringify(error, null, 2));
       toast({

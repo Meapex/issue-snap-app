@@ -43,7 +43,6 @@ export default function EmployeeDashboard() {
 
   useEffect(() => {
     const fetchComplaints = async () => {
-      setLoading(true);
       const { data, error } = await supabase
         .from('complaints')
         .select('*')
@@ -51,10 +50,11 @@ export default function EmployeeDashboard() {
 
       if (error) {
         console.error('Error fetching complaints:', error);
+        setLoading(false);
       } else {
         setComplaints(data as Complaint[]);
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     const {
@@ -67,16 +67,6 @@ export default function EmployeeDashboard() {
         router.push('/employee/login');
       }
     });
-    
-    // Initial check in case the auth state is already settled
-    const checkInitialSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            router.push('/employee/login');
-        }
-    };
-    checkInitialSession();
-
 
     return () => {
       subscription?.unsubscribe();

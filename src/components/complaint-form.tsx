@@ -160,17 +160,25 @@ export function ComplaintForm() {
         .getPublicUrl(fileName);
 
       const imageUrl = urlData.publicUrl;
-
-      // 3. Insert complaint into Supabase database
-      const { error: insertError } = await supabase.from('complaints').insert({
+      
+      const complaintData: any = {
         issue: complaint,
         location_description: locationDescription,
         image_url: imageUrl,
         latitude: location.latitude,
         longitude: location.longitude,
-        category: category,
-        department: department,
-      });
+      };
+
+      if (category) {
+        complaintData.category = category;
+      }
+      if (department) {
+        complaintData.department = department;
+      }
+
+
+      // 3. Insert complaint into Supabase database
+      const { error: insertError } = await supabase.from('complaints').insert(complaintData);
 
       if (insertError) throw insertError;
 
@@ -375,3 +383,5 @@ export function ComplaintForm() {
     </form>
   );
 }
+
+    

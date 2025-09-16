@@ -46,12 +46,11 @@ export default function EmployeeLoginPage() {
     } else {
       toast({
         title: 'Login Successful',
-        description: 'Redirecting to your dashboard...',
+        description: "Redirecting to your dashboard...",
       });
-      // Use a timeout to ensure the cookie is set before the redirect.
-      setTimeout(() => {
-        window.location.href = '/employee/dashboard';
-      }, 1000);
+      // Force a hard redirect to the dashboard.
+      // This ensures a fresh server request where the new auth cookie is present.
+      window.location.href = '/employee/dashboard';
     }
   };
 

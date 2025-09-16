@@ -1,9 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
-  // This is a temporary fix to allow the app to work with the new middleware
+  // updateSession will take care of refreshing the session cookie
+  // if it's expired.
+  const response = await updateSession(request);
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -12,16 +15,16 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value;
         },
-        set(name: string, value: string, options) {
-          const newResponse = NextResponse.next();
-          newResponse.cookies.set({ name, value, ...options });
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options });
+          response.cookies.set({ name, value, ...options });
         },
-        remove(name, options) {
-          const newResponse = NextResponse.next();
-          newResponse.cookies.set({ name, value: '', ...options });
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options });
+          response.cookies.set({ name, value: '', ...options });
         },
       },
-    },
+    }
   );
 
   const {
@@ -47,7 +50,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // update the session for the next request
-  return await updateSession(request);
+  return response;
 }
 
 export const config = {

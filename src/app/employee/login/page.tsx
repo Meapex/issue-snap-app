@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { login } from './actions';
 
@@ -29,21 +29,18 @@ export default function EmployeeLoginPage() {
     const formData = new FormData(event.currentTarget);
     const result = await login(formData);
 
+    // Only handle the error case. The success case is a server-side redirect.
     if (result?.error) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: result.error.message,
       });
-      setIsLoading(false);
-    } else {
-       toast({
-        title: 'Login Successful',
-        description: "You'll be redirected to the dashboard.",
-      });
-      // The redirect is handled by the server action on success.
-      // We leave the loading state as is, as the page will navigate away.
+       setIsLoading(false);
     }
+    // No need for a client-side redirect or success toast here.
+    // If we reach this point with an error, we stop loading.
+    // If the login was successful, the server redirects and this component unmounts.
   };
 
   return (

@@ -16,32 +16,42 @@ export default function EmployeeLayout({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-       if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
-        router.push('/employee/login');
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (pathname === '/employee/login' || pathname === '/employee/signup') {
+        if (session) {
+          router.replace('/employee/dashboard');
+        } else {
+          setIsLoading(false);
+        }
       } else {
-        setIsLoading(false);
+        if (!session) {
+          router.replace('/employee/login');
+        } else {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (pathname === '/employee/login' || pathname === '/employee/signup') {
+        if (session) {
+          router.replace('/employee/dashboard');
+        }
+      } else {
+        if (!session) {
+          router.replace('/employee/login');
+        }
       }
     });
 
-    // Also check session on initial load, in case auth state change is not fired
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-       if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
-        router.push('/employee/login');
-      } else {
-        setIsLoading(false);
-      }
-    };
-    checkSession();
-
-
     return () => {
-      subscription?.unsubscribe();
+      subscription.unsubscribe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, router, supabase.auth]);
-
 
   if (isLoading) {
     return (

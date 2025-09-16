@@ -35,21 +35,21 @@ export default function EmployeeLoginPage() {
       password,
     });
 
+    setIsLoading(false);
+
     if (error) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: error.message,
       });
-      setIsLoading(false);
     } else {
       toast({
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      // The new employee layout will handle the redirect after the session is confirmed.
-      // We push the route to trigger the check.
-      router.push('/employee/dashboard');
+      // Instead of pushing to the dashboard, we refresh the page.
+      // The EmployeeLayout will detect the new session and handle the redirect.
       router.refresh();
     }
   };

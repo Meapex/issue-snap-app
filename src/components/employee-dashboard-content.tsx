@@ -239,7 +239,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
   return (
     <>
       <main className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center justify-between space-y-2 animate-fade-in">
+        <div className="flex items-center justify-between space-y-2 animate-fade-in p-4 bg-card rounded-lg border">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Complaints Dashboard
@@ -252,7 +252,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Complaints
@@ -263,7 +263,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
               <div className="text-2xl font-bold">{totalComplaints}</div>
             </CardContent>
           </Card>
-          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">New Complaints</CardTitle>
               <Newspaper className="h-4 w-4 text-muted-foreground" />
@@ -272,7 +272,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
               <div className="text-2xl font-bold">{newComplaints}</div>
             </CardContent>
           </Card>
-          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Resolved Complaints

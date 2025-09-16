@@ -1,5 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -17,38 +17,22 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          request.cookies.set({ name, value, ...options });
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
+          request.cookies.set({ name, value: '', ...options });
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           });
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
+          response.cookies.set({ name, value: '', ...options });
         },
       },
     }
@@ -61,9 +45,14 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/employee/dashboard') && !session) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/employee/login';
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(new URL('/employee/login', request.url));
+  }
+
+  if (
+    (pathname.startsWith('/employee/login') || pathname.startsWith('/employee/signup')) &&
+    session
+  ) {
+    return NextResponse.redirect(new URL('/employee/dashboard', request.url));
   }
 
   return response;

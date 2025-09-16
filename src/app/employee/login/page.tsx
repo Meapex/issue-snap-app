@@ -13,39 +13,35 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { login } from './actions';
 
 export default function EmployeeLoginPage() {
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const formData = new FormData(event.currentTarget);
+    const result = await login(formData);
 
-    if (error) {
+    if (result?.error) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message,
+        description: result.error.message,
       });
       setIsLoading(false);
-    } else {
-      window.location.href = '/employee/dashboard';
     }
+    // The redirect is now handled by the server action on success.
+    // If we get here with no error, it means the redirect is in progress.
+    // We can leave the loading state as is.
   };
 
   return (
@@ -58,26 +54,24 @@ export default function EmployeeLoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="m@example.com"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>

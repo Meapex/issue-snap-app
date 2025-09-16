@@ -1,3 +1,4 @@
+require('dotenv').config({ path: './.env' });
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -35,11 +36,6 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
-  },
-  experimental: {
-    serverActions: {
-      env: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'],
-    },
   },
 };
 

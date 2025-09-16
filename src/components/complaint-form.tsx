@@ -20,7 +20,7 @@ import {
 import Image from 'next/image';
 import { ChangeEvent, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Badge } from './ui/badge';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 
 type Location = { latitude: number; longitude: number };
@@ -89,7 +89,6 @@ export function ComplaintForm() {
         toast({
           title: 'Location Acquired',
           description: 'Your location has been successfully recorded.',
-          action: <CheckCircle className="text-green-500" />,
         });
       },
       () => {
@@ -215,15 +214,15 @@ export function ComplaintForm() {
 
   if (isSubmitted) {
     return (
-      <div className="text-center p-8 flex flex-col items-center gap-4 rounded-lg bg-green-50 border border-green-200">
+      <div className="text-center p-8 flex flex-col items-center gap-4 rounded-lg bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800 animate-fade-in">
         <CheckCircle className="h-16 w-16 text-green-500" />
-        <h3 className="text-2xl font-semibold text-green-800 font-headline">
+        <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 font-headline">
           Complaint Submitted!
         </h3>
-        <p className="text-green-700">
-          Thank you for your report. Our team will look into it shortly.
+        <p className="text-green-700 dark:text-green-400">
+          Thank you for your report. You can track its status on the homepage.
         </p>
-        <Button onClick={resetForm} className="mt-4" variant="outline">
+        <Button onClick={resetForm} className="mt-4">
           <RefreshCcw className="mr-2" />
           File Another Complaint
         </Button>
@@ -232,12 +231,10 @@ export function ComplaintForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-foreground font-headline">
-          1. Capture the Issue
-        </h3>
-        <div className="p-4 border-2 border-dashed rounded-lg text-center">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <h3 className="text-lg font-medium text-foreground font-headline flex items-center"><span className="flex items-center justify-center w-6 h-6 mr-2 text-xs font-bold rounded-full bg-primary text-primary-foreground">1</span> Capture the Issue</h3>
+        <div className="p-4 border-2 border-dashed rounded-lg text-center bg-secondary/30 hover:border-primary transition-colors">
           {imagePreview ? (
             <div className="relative group w-full aspect-video rounded-md overflow-hidden">
               <Image
@@ -246,7 +243,7 @@ export function ComplaintForm() {
                 fill
                 className="object-contain"
               />
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   type="button"
                   variant="secondary"
@@ -283,11 +280,9 @@ export function ComplaintForm() {
         />
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-foreground font-headline">
-          2. Confirm Location
-        </h3>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border rounded-lg">
+      <div className="space-y-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <h3 className="text-lg font-medium text-foreground font-headline flex items-center"><span className="flex items-center justify-center w-6 h-6 mr-2 text-xs font-bold rounded-full bg-primary text-primary-foreground">2</span> Confirm Location</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border rounded-lg bg-secondary/30">
           <Button
             type="button"
             onClick={handleLocationRequest}
@@ -314,17 +309,15 @@ export function ComplaintForm() {
         </div>
       </div>
 
-      {(imagePreview || complaint) && (
-        <div className="space-y-4 pt-4 border-t">
-          <h3 className="text-lg font-medium text-foreground font-headline">
-            3. Generate & Submit
-          </h3>
+      {(imagePreview && location) && (
+        <div className="space-y-4 pt-4 border-t animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <h3 className="text-lg font-medium text-foreground font-headline flex items-center"><span className="flex items-center justify-center w-6 h-6 mr-2 text-xs font-bold rounded-full bg-primary text-primary-foreground">3</span> Generate & Submit</h3>
           {!complaint && (
             <Button
               type="button"
               onClick={handleGenerateComplaint}
               disabled={isGenerating || !imagePreview || !location}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+              className="w-full"
               size="lg"
             >
               {isGenerating ? (
@@ -336,19 +329,28 @@ export function ComplaintForm() {
             </Button>
           )}
 
-          {(isGenerating || complaint) && (
+           {(isGenerating || complaint) && (
             <div className="space-y-4">
+              {isGenerating && !complaint && (
+                <Alert>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <AlertTitle>Hang tight!</AlertTitle>
+                  <AlertDescription>
+                    Our AI is analyzing the image and drafting your complaint. This might take a moment.
+                  </AlertDescription>
+                </Alert>
+              )}
               {complaint && (
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-lg">
-                    <HardHat className="h-5 w-5 text-muted-foreground" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="flex items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
+                    <HardHat className="h-6 w-6 text-muted-foreground" />
                     <div>
                       <span className="font-semibold text-muted-foreground">Department</span>
                       <p className="font-bold text-foreground">{department || 'N/A'}</p>
                     </div>
                   </div>
-                   <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-lg">
-                    <Wand2 className="h-5 w-5 text-muted-foreground" />
+                   <div className="flex items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
+                    <Wand2 className="h-6 w-6 text-muted-foreground" />
                     <div>
                       <span className="font-semibold text-muted-foreground">Category</span>
                       <p className="font-bold text-foreground">{category || 'N/A'}</p>
@@ -361,7 +363,7 @@ export function ComplaintForm() {
                 onChange={(e) => setComplaint(e.target.value)}
                 placeholder="AI is generating your complaint..."
                 rows={8}
-                className="bg-white"
+                className="bg-card"
                 disabled={isGenerating}
               />
               <Button
@@ -384,5 +386,3 @@ export function ComplaintForm() {
     </form>
   );
 }
-
-    

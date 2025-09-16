@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, Upload, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import { ChangeEvent, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -121,16 +121,15 @@ export function ResolveComplaintModal({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Resolve Complaint</DialogTitle>
           <DialogDescription>
-            Upload an image to confirm resolution and update the status to
-            "Resolved".
+            Upload a photo of the resolved issue to close this complaint.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="p-4 border-2 border-dashed rounded-lg text-center">
+          <div className="p-4 border-2 border-dashed rounded-lg text-center bg-secondary/30 hover:border-primary transition-colors">
             {imagePreview ? (
               <div className="relative group w-full aspect-video rounded-md overflow-hidden">
                 <Image
@@ -161,15 +160,21 @@ export function ResolveComplaintModal({
             onChange={handleImageChange}
             className="hidden"
             accept="image/*"
+            capture="environment"
           />
         </div>
         <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !imageFile}
           >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle className="mr-2 h-4 w-4" />
+            )}
             Mark as Resolved
           </Button>
         </DialogFooter>

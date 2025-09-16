@@ -26,6 +26,9 @@ import {
   Loader2,
   LogOut,
   Newspaper,
+  ShieldX,
+  Trash2,
+  XCircle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -78,7 +81,7 @@ function DateCell({ dateString }: { dateString: string | null }) {
     }
   }, [dateString]);
 
-  if (!dateString) return <TableCell />;
+  if (!dateString) return <TableCell className="text-muted-foreground/60">---</TableCell>;
 
   return <TableCell suppressHydrationWarning>{formattedDate || '...'}</TableCell>;
 }
@@ -133,7 +136,6 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
   };
 
   useEffect(() => {
-    // Realtime subscription
     const channel = supabase
       .channel('realtime-complaints')
       .on(
@@ -162,8 +164,6 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
 
 
   const handleComplaintResolved = (updatedComplaint: Complaint) => {
-    // The state will be updated by the realtime subscription,
-    // so we just need to close the modal.
     setSelectedComplaint(null);
   };
 
@@ -183,13 +183,13 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
         description: 'Failed to deny the complaint. Please try again.',
       });
     } else {
-      // State will update via realtime, but we can optimistically update here
       setComplaints((prev) =>
         prev.map((c) =>
           c.id === complaintToDeny.id ? { ...c, status: 'Denied' } : c
         )
       );
       toast({
+        variant: 'destructive',
         title: 'Complaint Denied',
         description: `Complaint has been marked as denied.`,
       });
@@ -210,14 +210,14 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
         .map(([name, total]) => ({
           name,
           complaints: total,
-          fill: `var(--color-${name.replace(' ', '')})`,
+          fill: chartConfig[name as keyof typeof chartConfig]?.color || chartConfig['Other'].color,
         }))
         .sort((a, b) => b.complaints - a.complaints);
       
       const newCount = complaints.filter((c) => c.status === 'New').length;
       const resolvedCount = complaints.filter((c) => c.status === 'Resolved').length;
       const deniedCount = complaints.filter((c) => c.status === 'Denied').length;
-      const inProgressCount = complaints.length - newCount - resolvedCount - deniedCount;
+      const inProgressCount = complaints.filter((c) => c.status === 'In Progress').length;
 
 
       const statusChartData = [
@@ -225,7 +225,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
           { status: 'In Progress', count: inProgressCount, fill: 'hsl(var(--chart-4))' },
           { status: 'Resolved', count: resolvedCount, fill: 'hsl(var(--chart-1))' },
           { status: 'Denied', count: deniedCount, fill: 'hsl(var(--destructive))' },
-      ]
+      ].filter(item => item.count > 0);
 
       return {
         totalComplaints: complaints.length,
@@ -238,232 +238,264 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
 
   return (
     <>
-      <main className="flex min-h-screen w-full flex-col bg-muted/40">
-        <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
-          <div className="flex items-center justify-between space-y-2">
+      <main className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center justify-between space-y-2 animate-fade-in">
+          <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Complaints Dashboard
             </h1>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+            <p className="text-muted-foreground">An overview of all reported issues.</p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Complaints
-                </CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalComplaints}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Complaints</CardTitle>
-                <Newspaper className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{newComplaints}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Resolved Complaints
-                </CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{resolvedComplaints}</div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
-              <CardHeader>
-                <CardTitle>Overview by Category</CardTitle>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart accessibilityLayer data={chartData}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="name"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `${value}`}
-                      />
-                      <Tooltip
-                        cursor={{ fill: 'hsl(var(--muted))' }}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Bar
-                        dataKey="complaints"
-                        radius={[4, 4, 0, 0]}
-                      >
-                        {chartData.map((entry) => (
-                          <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-            <Card className="col-span-4 md:col-span-3">
-              <CardHeader>
-                <CardTitle>Complaints by Status</CardTitle>
-                <CardDescription>
-                  Distribution of new, in-progress, and resolved complaints.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={chartConfig}
-                  className="mx-auto aspect-square h-[300px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip
-                        cursor={false}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Pie
-                        data={statusChartData}
-                        dataKey="count"
-                        nameKey="status"
-                        innerRadius={60}
-                        strokeWidth={5}
-                      >
-                        {statusChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
-          <Card>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Complaints
+              </CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalComplaints}</div>
+            </CardContent>
+          </Card>
+          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New Complaints</CardTitle>
+              <Newspaper className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{newComplaints}</div>
+            </CardContent>
+          </Card>
+          <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Resolved Complaints
+              </CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{resolvedComplaints}</div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <Card className="col-span-4">
             <CardHeader>
-              <CardTitle>Recent Complaints</CardTitle>
+              <CardTitle>Overview by Category</CardTitle>
+              <CardDescription>Number of complaints per reported category.</CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart accessibilityLayer data={chartData}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `${value}`}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'hsl(var(--accent))' }}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Bar
+                      dataKey="complaints"
+                      radius={[4, 4, 0, 0]}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+          <Card className="col-span-4 md:col-span-3">
+            <CardHeader>
+              <CardTitle>Complaints by Status</CardTitle>
               <CardDescription>
-                Here are the latest issues reported by users.
+                Live distribution of all complaint statuses.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Issue Photo</TableHead>
-                    <TableHead>Resolution Photo</TableHead>
-                    <TableHead>Issue</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Submitted At</TableHead>
-                    <TableHead>Resolved At</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {complaints.map((complaint) => (
-                    <TableRow key={complaint.id} className="hover:bg-muted/50">
-                      <TableCell>
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Pie
+                      data={statusChartData}
+                      dataKey="count"
+                      nameKey="status"
+                      innerRadius={60}
+                      strokeWidth={5}
+                      labelLine={false}
+                      label={({
+                        cx,
+                        cy,
+                        midAngle,
+                        innerRadius,
+                        outerRadius,
+                        percent,
+                        index,
+                      }) => {
+                        const RADIAN = Math.PI / 180;
+                        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            fill="white"
+                            textAnchor={x > cx ? 'start' : 'end'}
+                            dominantBaseline="central"
+                            className="text-xs font-bold"
+                          >
+                            {`${(percent * 100).toFixed(0)}%`}
+                          </text>
+                        );
+                      }}
+                    >
+                      {statusChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </div>
+        <Card className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <CardHeader>
+            <CardTitle>Recent Complaints</CardTitle>
+            <CardDescription>
+              Here are the latest issues reported by users. Select a row to take action.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Issue</TableHead>
+                  <TableHead>Photo</TableHead>
+                  <TableHead>Resolution</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead>Resolved</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {complaints.map((complaint) => (
+                  <TableRow key={complaint.id} className="hover:bg-muted/50 transition-colors">
+                    <TableCell className="font-medium max-w-xs truncate">
+                      {complaint.issue}
+                    </TableCell>
+                    <TableCell>
+                      <Image
+                        src={complaint.image_url}
+                        alt={complaint.issue}
+                        width={100}
+                        height={66}
+                        className="rounded-md object-cover"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {complaint.resolution_image_url ? (
                         <Image
-                          src={complaint.image_url}
-                          alt={complaint.issue}
+                          src={complaint.resolution_image_url}
+                          alt={`Resolution for ${complaint.issue}`}
                           width={100}
                           height={66}
                           className="rounded-md object-cover"
                         />
-                      </TableCell>
-                      <TableCell>
-                        {complaint.resolution_image_url ? (
-                          <Image
-                            src={complaint.resolution_image_url}
-                            alt={`Resolution for ${complaint.issue}`}
-                            width={100}
-                            height={66}
-                            className="rounded-md object-cover"
-                          />
-                        ) : (
-                          <div className="w-[100px] h-[66px] bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground">
-                            Not Resolved
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {complaint.issue}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {complaint.category || 'Other'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{complaint.department || 'N/A'}</TableCell>
-                      <TableCell>
-                        {complaint.location_description}
-                      </TableCell>
-                       <DateCell dateString={complaint.created_at} />
-                       <DateCell dateString={complaint.resolved_at} />
-                      <TableCell>
-                        <Badge
-                          variant={
-                            complaint.status === 'New'
-                              ? 'secondary'
-                              : complaint.status === 'Resolved'
-                              ? 'default'
-                              : complaint.status === 'Denied'
-                              ? 'destructive'
-                              : 'outline'
-                          }
-                        >
-                          {complaint.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {complaint.status === 'New' || complaint.status === 'In Progress' ? (
-                          <div className='flex gap-2 justify-end'>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setComplaintToDeny(complaint)}
-                            >
-                              Deny
-                            </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => setSelectedComplaint(complaint)}
-                            >
-                              Resolve
-                            </Button>
-                          </div>
-                        ) : null}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+                      ) : (
+                        <div className="w-[100px] h-[66px] bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground">
+                          Pending
+                        </div>
+                      )}
+                    </TableCell>
+                    
+                    <TableCell>
+                      <Badge variant="outline">
+                        {complaint.category || 'Other'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{complaint.department || 'N/A'}</TableCell>
+                    <TableCell>
+                      {complaint.location_description}
+                    </TableCell>
+                     <DateCell dateString={complaint.created_at} />
+                     <DateCell dateString={complaint.resolved_at} />
+                    <TableCell>
+                      <Badge
+                        variant={
+                          complaint.status === 'New'
+                            ? 'secondary'
+                            : complaint.status === 'Resolved'
+                            ? 'default'
+                            : complaint.status === 'Denied'
+                            ? 'destructive'
+                            : complaint.status === 'In Progress'
+                            ? 'outline'
+                            : 'secondary'
+                        }
+                      >
+                        {complaint.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(complaint.status === 'New' || complaint.status === 'In Progress') && (
+                        <div className='flex gap-2 justify-end'>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setComplaintToDeny(complaint)}
+                          >
+                            <XCircle className="mr-2 h-4 w-4" /> Deny
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => setSelectedComplaint(complaint)}
+                          >
+                             <CheckCircle className="mr-2 h-4 w-4" /> Resolve
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </main>
       {selectedComplaint && (
         <ResolveComplaintModal
@@ -477,14 +509,14 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to deny this complaint?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will mark this complaint as "Denied". This cannot be undone.
+              This action will permanently mark the complaint as "Denied" and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDenying}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDenyComplaint} disabled={isDenying} className='bg-destructive hover:bg-destructive/90 text-destructive-foreground'>
+            <AlertDialogAction onClick={handleDenyComplaint} disabled={isDenying} variant="destructive">
               {isDenying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Deny Complaint
+              Yes, Deny Complaint
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

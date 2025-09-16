@@ -2,10 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   })
 
   const supabase = createServerClient(
@@ -17,38 +15,14 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          // If the cookie is set, update the request's cookies.
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          // Also update the response's cookies.
-          response.cookies.set({
+          supabaseResponse.cookies.set({
             name,
             value,
             ...options,
           })
         },
         remove(name: string, options: CookieOptions) {
-          // If the cookie is removed, update the request's cookies.
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          // Also update the response's cookies.
-          response.cookies.set({
+          supabaseResponse.cookies.set({
             name,
             value: '',
             ...options,
@@ -58,8 +32,14 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // This will refresh the session if it's expired.
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  return response
+  // IMPORTANT: Avoid writing any logic that relies on the user object here.
+  // The session is not fully validated at this point, and it's easy to introduce
+  // race conditions. The primary purpose of this middleware is to refresh the session cookie.
+  // Route protection logic should happen in the main `middleware.ts` file.
+
+  return supabaseResponse
 }

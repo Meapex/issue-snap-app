@@ -44,12 +44,8 @@ export default function EmployeeLoginPage() {
       });
       setIsLoading(false);
     } else {
-      toast({
-        title: 'Login Successful',
-        description: "Redirecting to your dashboard...",
-      });
-      // Force a hard redirect to the dashboard.
-      // This ensures a fresh server request where the new auth cookie is present.
+      // This forces a hard redirect and a full page reload.
+      // It's the most reliable way to ensure the new session cookie is sent to the server.
       window.location.href = '/employee/dashboard';
     }
   };

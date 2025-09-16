@@ -1,10 +1,10 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { type NextRequest, NextResponse } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
+import { type NextRequest, NextResponse } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
+import { createServerClient } from '@supabase/ssr';
+
 
 export async function middleware(request: NextRequest) {
-  // This `updateSession` function is what refreshes the user's session cookie.
-  const response = await updateSession(request);
+  const response = await updateSession(request)
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,15 +24,14 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Define protected routes for employees
-  const isEmployeeRoute = pathname.startsWith('/employee/dashboard');
-  
-  // If trying to access a protected employee route without a session, redirect to login.
-  if (isEmployeeRoute && !session) {
-    return NextResponse.redirect(new URL('/employee/login', request.url));
+  const isEmployeeDashboard = pathname.startsWith('/employee/dashboard');
+
+  if (isEmployeeDashboard && !session) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/employee/login';
+    return NextResponse.redirect(url);
   }
 
-  // Otherwise, continue with the response, which includes the updated session cookie.
   return response;
 }
 

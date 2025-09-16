@@ -5,13 +5,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import type { Complaint } from '@/app/employee/dashboard/page';
+import { useEffect, useState } from 'react';
 
 export function ComplaintCard({ complaint }: { complaint: Complaint }) {
+  const [reportedDate, setReportedDate] = useState<string | null>(null);
+  const [resolvedDate, setResolvedDate] = useState<string | null>(null);
 
-  const reportedDate = formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true });
-  const resolvedDate = complaint.resolved_at 
-    ? formatDistanceToNow(new Date(complaint.resolved_at), { addSuffix: true })
-    : null;
+  useEffect(() => {
+    setReportedDate(formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true }));
+    if (complaint.resolved_at) {
+      setResolvedDate(formatDistanceToNow(new Date(complaint.resolved_at), { addSuffix: true }));
+    }
+  }, [complaint.created_at, complaint.resolved_at]);
+
 
   return (
     <Card>
@@ -23,9 +29,11 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
               <span className="font-semibold">Location:</span>{' '}
               {complaint.location_description}
             </p>
-            <div className="text-xs text-muted-foreground">
-              Reported {reportedDate}
-            </div>
+            {reportedDate ? (
+               <div className="text-xs text-muted-foreground">
+                Reported {reportedDate}
+              </div>
+            ) : <div className='h-3 w-2/4 bg-muted rounded-md animate-pulse'/>}
             {resolvedDate && (
               <div className="text-xs text-green-600">
                 Resolved {resolvedDate}
@@ -69,5 +77,3 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
     </Card>
   );
 }
-
-    

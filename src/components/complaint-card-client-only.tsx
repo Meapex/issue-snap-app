@@ -19,7 +19,7 @@ export function ComplaintCardClientOnly({ complaint }: { complaint: Complaint })
 
 function ComplaintCardSkeleton() {
     return (
-      <div className="p-4 border rounded-lg">
+      <div className="p-4 border rounded-lg bg-card">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <Skeleton className="h-6 w-3/4" />

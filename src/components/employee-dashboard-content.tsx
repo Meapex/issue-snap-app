@@ -60,15 +60,26 @@ import {
 import type { Complaint } from '@/app/employee/dashboard/page';
 
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return null;
-  return new Date(dateString).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+function DateCell({ dateString }: { dateString: string | null }) {
+  const [formattedDate, setFormattedDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (dateString) {
+      setFormattedDate(
+        new Date(dateString).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      );
+    }
+  }, [dateString]);
+
+  if (!dateString) return <TableCell />;
+
+  return <TableCell>{formattedDate || '...'}</TableCell>;
 }
 
 const chartConfig = {
@@ -408,8 +419,8 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
                       <TableCell>
                         {complaint.location_description}
                       </TableCell>
-                      <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                      <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                       <DateCell dateString={complaint.created_at} />
+                       <DateCell dateString={complaint.resolved_at} />
                       <TableCell>
                         <Badge
                           variant={

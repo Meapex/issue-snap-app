@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ComplaintCardClientOnly } from '@/components/complaint-card-client-only';
+import type { Complaint } from '@/app/employee/dashboard/page';
 
 export default async function Home() {
   const supabase = createClient();
@@ -71,7 +72,10 @@ export default async function Home() {
             <TabsContent value="ongoing" className="mt-4 space-y-4">
               {ongoingComplaints.length > 0 ? (
                 ongoingComplaints.map((complaint) => (
-                  <ComplaintCardClientOnly key={complaint.id} complaint={complaint} />
+                  <ComplaintCardClientOnly
+                    key={complaint.id}
+                    complaint={complaint as Complaint}
+                  />
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">
@@ -82,7 +86,10 @@ export default async function Home() {
             <TabsContent value="resolved" className="mt-4 space-y-4">
               {resolvedComplaints.length > 0 ? (
                 resolvedComplaints.map((complaint) => (
-                  <ComplaintCardClientOnly key={complaint.id} complaint={complaint} />
+                  <ComplaintCardClientOnly
+                    key={complaint.id}
+                    complaint={complaint as Complaint}
+                  />
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">
@@ -100,7 +107,10 @@ export default async function Home() {
               </Alert>
               {deniedComplaints.length > 0 ? (
                 deniedComplaints.map((complaint) => (
-                  <ComplaintCardClientOnly key={complaint.id} complaint={complaint} />
+                  <ComplaintCardClientOnly
+                    key={complaint.id}
+                    complaint={complaint as Complaint}
+                  />
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">

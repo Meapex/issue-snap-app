@@ -16,26 +16,25 @@ export default function EmployeeLayout({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
+        router.push('/employee/login');
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Also check session on initial load, in case auth state change is not fired
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
+       if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
         router.push('/employee/login');
       } else {
         setIsLoading(false);
       }
     };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-       if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
-        router.push('/employee/login');
-      } else {
-         // If there is a session or we are on a public page, stop loading
-        setIsLoading(false);
-      }
-    });
-
     checkSession();
+
 
     return () => {
       subscription?.unsubscribe();

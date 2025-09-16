@@ -74,15 +74,6 @@ export default async function Home() {
                   Report an Issue <ArrowRight className="ml-2" />
                 </Button>
               </Link>
-               <a href="#dashboard">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="w-full sm:w-auto text-lg py-7 px-8 transition-transform transform hover:scale-105"
-                >
-                  <Eye className="mr-2" /> View Dashboard
-                </Button>
-              </a>
               <Link href="/employee/login">
                 <Button
                   size="lg"
@@ -332,5 +323,3 @@ export default async function Home() {
     </div>
   );
 }
-
-    

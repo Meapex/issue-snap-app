@@ -373,8 +373,17 @@ export default function EmployeeDashboard() {
                       </TableCell>
                       <TableCell>{complaint.department || 'N/A'}</TableCell>
                       <TableCell>{complaint.location_description}</TableCell>
-                      <TableCell>{isMounted ? formatDate(complaint.created_at) : ''}</TableCell>
-                      <TableCell>{isMounted ? formatDate(complaint.resolved_at) : ''}</TableCell>
+                      {isMounted ? (
+                        <>
+                           <TableCell>{formatDate(complaint.created_at)}</TableCell>
+                           <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell></TableCell>
+                          <TableCell></TableCell>
+                        </>
+                      )}
                       <TableCell>
                         <Badge
                           variant={
@@ -417,3 +426,5 @@ export default function EmployeeDashboard() {
     </>
   );
 }
+
+    

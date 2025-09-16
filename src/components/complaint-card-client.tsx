@@ -53,7 +53,7 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
               <span className="font-semibold">Location:</span>{' '}
               {complaint.location_description}
             </p>
-            {isMounted && (
+            {!isMounted ? null : (
               <>
                 <div className="text-xs text-muted-foreground">
                   Reported {reportedDate}
@@ -103,3 +103,5 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
     </Card>
   );
 }
+
+    

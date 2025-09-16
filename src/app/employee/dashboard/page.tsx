@@ -375,13 +375,13 @@ export default function EmployeeDashboard() {
                       <TableCell>{complaint.location_description}</TableCell>
                       {isMounted ? (
                         <>
-                           <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                           <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                          <TableCell>{formatDate(complaint.created_at)}</TableCell>
+                          <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
                         </>
                       ) : (
                         <>
-                          <TableCell></TableCell>
-                          <TableCell></TableCell>
+                          <TableCell />
+                          <TableCell />
                         </>
                       )}
                       <TableCell>
@@ -426,5 +426,3 @@ export default function EmployeeDashboard() {
     </>
   );
 }
-
-    

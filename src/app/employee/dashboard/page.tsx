@@ -22,13 +22,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
   CheckCircle,
-  Eye,
   FileText,
   Loader2,
   LogOut,
   Map,
   Newspaper,
-  XCircle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -436,12 +434,12 @@ export default function EmployeeDashboard() {
                       {isMounted ? (
                           <TableCell>{formatDate(complaint.created_at)}</TableCell>
                         ) : (
-                           <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
+                           null
                       )}
                       {isMounted ? (
                           <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
                         ) : (
-                           <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
+                           null
                       )}
                       <TableCell>
                         <Badge
@@ -519,3 +517,5 @@ export default function EmployeeDashboard() {
     </>
   );
 }
+
+    

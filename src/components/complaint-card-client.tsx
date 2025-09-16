@@ -52,7 +52,7 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
                   </div>
                 )}
               </>
-            ) : <div className='h-4 w-24 bg-muted animate-pulse rounded-md' />}
+            ) : null}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col items-center gap-1">
@@ -91,3 +91,5 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
     </Card>
   );
 }
+
+    

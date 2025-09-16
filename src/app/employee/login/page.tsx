@@ -44,8 +44,6 @@ export default function EmployeeLoginPage() {
       });
       setIsLoading(false);
     } else {
-      // This forces a hard redirect and a full page reload.
-      // It's the most reliable way to ensure the new session cookie is sent to the server.
       window.location.href = '/employee/dashboard';
     }
   };

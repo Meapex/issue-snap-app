@@ -48,7 +48,8 @@ export default function EmployeeLoginPage() {
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      // The EmployeeLayout's onAuthStateChange listener will handle the redirect.
+      // Redirect to the dashboard after a successful login.
+      // The middleware will ensure the user is authenticated.
       router.replace('/employee/dashboard');
     }
   };

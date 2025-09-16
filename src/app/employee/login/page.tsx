@@ -44,10 +44,12 @@ export default function EmployeeLoginPage() {
     } else {
       toast({
         title: 'Login Successful',
-        description: "You're now logged in.",
+        description: "You're now logged in. Redirecting...",
       });
-      // Force a full page reload to ensure the new session is recognized by the server middleware.
-      window.location.href = '/employee/dashboard';
+      // Redirect after a short delay to allow the user to see the toast.
+      setTimeout(() => {
+        window.location.href = '/employee/dashboard';
+      }, 1500);
     }
   };
 

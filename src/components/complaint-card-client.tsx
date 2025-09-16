@@ -29,14 +29,12 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
               <span className="font-semibold">Location:</span>{' '}
               {complaint.location_description}
             </p>
-            {reportedDate ? (
-               <div className="text-xs text-muted-foreground">
-                Reported {reportedDate}
-              </div>
-            ) : <div className='h-3 w-2/4 bg-muted rounded-md animate-pulse'/>}
-            {resolvedDate && (
-              <div className="text-xs text-green-600">
-                Resolved {resolvedDate}
+            <div className="text-xs text-muted-foreground" suppressHydrationWarning>
+              {reportedDate ? `Reported ${reportedDate}`: <div className='h-3 w-2/4 bg-muted rounded-md animate-pulse'/>}
+            </div>
+            {complaint.resolved_at && (
+              <div className="text-xs text-green-600" suppressHydrationWarning>
+                {resolvedDate ? `Resolved ${resolvedDate}` : ''}
               </div>
             )}
           </div>

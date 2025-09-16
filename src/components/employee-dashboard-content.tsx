@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -79,7 +80,7 @@ function DateCell({ dateString }: { dateString: string | null }) {
 
   if (!dateString) return <TableCell />;
 
-  return <TableCell>{formattedDate || '...'}</TableCell>;
+  return <TableCell suppressHydrationWarning>{formattedDate || '...'}</TableCell>;
 }
 
 const chartConfig = {

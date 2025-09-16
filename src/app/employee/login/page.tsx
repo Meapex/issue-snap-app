@@ -44,12 +44,9 @@ export default function EmployeeLoginPage() {
       });
       setIsLoading(false);
     } else {
-      toast({
-        title: 'Login Successful',
-        description: "You're now logged in. Redirecting...",
-      });
-      // This will re-fetch the page and trigger the middleware to redirect.
-      router.refresh();
+      // On success, force a hard redirect.
+      // This is the most reliable way to ensure the new cookie is read by the server middleware.
+      window.location.href = '/employee/dashboard';
     }
   };
 

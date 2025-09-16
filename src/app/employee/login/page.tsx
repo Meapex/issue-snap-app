@@ -28,18 +28,16 @@ export default function EmployeeLoginPage() {
     const formData = new FormData(event.currentTarget);
     const result = await login(formData);
 
-    // Only handle the error case. The success case is a server-side redirect.
     if (result?.error) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: result.error.message,
       });
-       setIsLoading(false);
     }
-    // No need for a client-side redirect or success toast here.
-    // If we reach this point with an error, we stop loading.
-    // If the login was successful, the server redirects and this component unmounts.
+    // No success case needed here, as the server action redirects on success.
+    // We only set loading to false if there's an error.
+    setIsLoading(false);
   };
 
   return (

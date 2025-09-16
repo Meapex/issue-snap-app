@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function login(formData: FormData) {
@@ -30,7 +31,6 @@ export async function login(formData: FormData) {
     };
   }
 
-  // On success, redirect from the server.
-  // The client will not need to handle success navigation.
+  revalidatePath('/', 'layout');
   redirect('/employee/dashboard');
 }

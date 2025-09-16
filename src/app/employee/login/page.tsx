@@ -44,9 +44,14 @@ export default function EmployeeLoginPage() {
       });
       setIsLoading(false);
     } else {
-      // On success, force a hard redirect.
-      // This is the most reliable way to ensure the new cookie is read by the server middleware.
-      window.location.href = '/employee/dashboard';
+      toast({
+        title: 'Login Successful',
+        description: 'Redirecting to your dashboard...',
+      });
+      // Use a timeout to ensure the cookie is set before the redirect.
+      setTimeout(() => {
+        window.location.href = '/employee/dashboard';
+      }, 1000);
     }
   };
 

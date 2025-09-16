@@ -48,8 +48,6 @@ export default function EmployeeLoginPage() {
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      // The middleware will handle redirecting to the dashboard
-      // after the session is established. We just need to refresh to trigger it.
       router.refresh();
     }
   };

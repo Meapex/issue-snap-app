@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Eye, Loader2, Trash2, TrendingUp, Zap } from 'lucide-react';
+import { Eye, Loader2, LogOut, Trash2, TrendingUp, Zap } from 'lucide-react';
 import {
   BarChart,
   XAxis,
@@ -36,6 +36,8 @@ import {
 } from '@/components/ui/chart';
 import { ResolveComplaintModal } from '@/components/resolve-complaint-modal';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export type Complaint = {
   id: string;
@@ -69,6 +71,18 @@ export default function EmployeeDashboard() {
     null
   );
   const supabase = createClient();
+  const router = useRouter();
+  const { toast } = useToast();
+
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: 'Logged Out',
+      description: 'You have been successfully logged out.',
+    });
+    router.push('/employee/login');
+  };
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -142,9 +156,15 @@ export default function EmployeeDashboard() {
     <>
       <main className="flex min-h-screen w-full flex-col bg-background p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-7xl mx-auto space-y-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Complaints Dashboard
-          </h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Complaints Dashboard
+            </h1>
+             <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </div>
 
           <section id="analytics">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-4">

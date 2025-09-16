@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,10 +20,12 @@ type Complaint = {
 };
 
 export function ComplaintCard({ complaint }: { complaint: Complaint }) {
+  const [isMounted, setIsMounted] = useState(false);
   const [reportedDate, setReportedDate] = useState('');
   const [resolvedDate, setResolvedDate] = useState('');
 
   useEffect(() => {
+    setIsMounted(true);
     setReportedDate(
       formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true })
     );
@@ -34,6 +37,10 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
       );
     }
   }, [complaint.created_at, complaint.resolved_at]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <Card>

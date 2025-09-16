@@ -26,7 +26,9 @@ import {
   FileText,
   Loader2,
   LogOut,
+  Map,
   Newspaper,
+  XCircle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -49,14 +51,28 @@ import { ResolveComplaintModal } from '@/components/resolve-complaint-modal';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { ViewLocationModal } from '@/components/view-location-modal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export type Complaint = {
   id: string;
+  hash_id: string;
   issue: string;
   location_description: string;
-  status: 'New' | 'In Progress' | 'Resolved';
+  status: 'New' | 'In Progress' | 'Resolved' | 'Denied';
   image_url: string;
   created_at: string;
+  latitude: number;
+  longitude: number;
   category: string;
   department: string;
   resolution_image_url: string | null;
@@ -107,6 +123,14 @@ export default function EmployeeDashboard() {
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
     null
   );
+  const [complaintToDeny, setComplaintToDeny] = useState<Complaint | null>(
+    null
+  );
+  const [complaintToView, setComplaintToView] = useState<Complaint | null>(
+    null
+  );
+  const [isDenying, setIsDenying] = useState(false);
+
   const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
@@ -147,6 +171,36 @@ export default function EmployeeDashboard() {
     setSelectedComplaint(null);
   };
 
+  const handleDenyComplaint = async () => {
+    if (!complaintToDeny) return;
+
+    setIsDenying(true);
+    const { error } = await supabase
+      .from('complaints')
+      .update({ status: 'Denied' })
+      .eq('id', complaintToDeny.id);
+    
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to deny the complaint. Please try again.',
+      });
+    } else {
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c.id === complaintToDeny.id ? { ...c, status: 'Denied' } : c
+        )
+      );
+      toast({
+        title: 'Complaint Denied',
+        description: `Complaint #${complaintToDeny.hash_id} has been marked as denied.`,
+      });
+    }
+    setIsDenying(false);
+    setComplaintToDeny(null);
+  };
+
   const { totalComplaints, newComplaints, resolvedComplaints, chartData, statusChartData } =
     useMemo(() => {
       const categoryCounts = complaints.reduce((acc, complaint) => {
@@ -165,12 +219,15 @@ export default function EmployeeDashboard() {
       
       const newCount = complaints.filter((c) => c.status === 'New').length;
       const resolvedCount = complaints.filter((c) => c.status === 'Resolved').length;
-      const inProgressCount = complaints.length - newCount - resolvedCount;
+      const deniedCount = complaints.filter((c) => c.status === 'Denied').length;
+      const inProgressCount = complaints.length - newCount - resolvedCount - deniedCount;
+
 
       const statusChartData = [
-          { status: 'New', count: newCount, fill: 'hsl(var(--destructive))' },
-          { status: 'In Progress', count: inProgressCount, fill: 'hsl(var(--secondary-foreground))' },
-          { status: 'Resolved', count: resolvedCount, fill: 'hsl(var(--primary))' },
+          { status: 'New', count: newCount, fill: 'hsl(var(--chart-2))' },
+          { status: 'In Progress', count: inProgressCount, fill: 'hsl(var(--chart-4))' },
+          { status: 'Resolved', count: resolvedCount, fill: 'hsl(var(--chart-1))' },
+          { status: 'Denied', count: deniedCount, fill: 'hsl(var(--destructive))' },
       ]
 
       return {
@@ -193,7 +250,7 @@ export default function EmployeeDashboard() {
 
   return (
     <>
-      <main className="flex min-h-screen w-full flex-col bg-background">
+      <main className="flex min-h-screen w-full flex-col bg-muted/40">
         <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -324,6 +381,7 @@ export default function EmployeeDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>ID</TableHead>
                     <TableHead>Issue Photo</TableHead>
                     <TableHead>Resolution Photo</TableHead>
                     <TableHead>Issue</TableHead>
@@ -333,12 +391,13 @@ export default function EmployeeDashboard() {
                     <TableHead>Submitted At</TableHead>
                     <TableHead>Resolved At</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {complaints.map((complaint) => (
                     <TableRow key={complaint.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono text-xs">#{complaint.hash_id}</TableCell>
                       <TableCell>
                         <Image
                           src={complaint.image_url}
@@ -372,7 +431,11 @@ export default function EmployeeDashboard() {
                         </Badge>
                       </TableCell>
                       <TableCell>{complaint.department || 'N/A'}</TableCell>
-                      <TableCell>{complaint.location_description}</TableCell>
+                      <TableCell>
+                        <button onClick={() => setComplaintToView(complaint)} className='text-sm text-primary hover:underline flex items-center gap-1'>
+                          <Map size={14} /> {complaint.location_description}
+                        </button>
+                      </TableCell>
                       {isMounted ? (
                         <>
                           <TableCell>{formatDate(complaint.created_at)}</TableCell>
@@ -380,33 +443,44 @@ export default function EmployeeDashboard() {
                         </>
                       ) : (
                         <>
-                          <TableCell />
-                          <TableCell />
+                           <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
+                          <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
                         </>
                       )}
                       <TableCell>
                         <Badge
                           variant={
                             complaint.status === 'New'
-                              ? 'destructive'
-                              : complaint.status === 'In Progress'
                               ? 'secondary'
-                              : 'default'
+                              : complaint.status === 'Resolved'
+                              ? 'default'
+                              : complaint.status === 'Denied'
+                              ? 'destructive'
+                              : 'outline'
                           }
                         >
                           {complaint.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {complaint.status !== 'Resolved' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedComplaint(complaint)}
-                          >
-                            Resolve
-                          </Button>
-                        )}
+                      <TableCell className="text-right">
+                        {complaint.status === 'New' || complaint.status === 'In Progress' ? (
+                          <div className='flex gap-2 justify-end'>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setComplaintToDeny(complaint)}
+                            >
+                              Deny
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => setSelectedComplaint(complaint)}
+                            >
+                              Resolve
+                            </Button>
+                          </div>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -423,6 +497,31 @@ export default function EmployeeDashboard() {
           onComplaintResolved={handleComplaintResolved}
         />
       )}
+      {complaintToView && (
+         <ViewLocationModal
+          complaint={complaintToView}
+          onOpenChange={() => setComplaintToView(null)}
+        />
+      )}
+       <AlertDialog open={!!complaintToDeny} onOpenChange={(open) => !open && setComplaintToDeny(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to deny this complaint?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will mark complaint #{complaintToDeny?.hash_id} as "Denied". This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDenying}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDenyComplaint} disabled={isDenying} className='bg-destructive hover:bg-destructive/90 text-destructive-foreground'>
+              {isDenying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Deny Complaint
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
+    

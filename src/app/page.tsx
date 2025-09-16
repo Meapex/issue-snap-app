@@ -14,12 +14,12 @@ export default async function Home() {
     .limit(20);
 
   const ongoingComplaints =
-    complaints?.filter((c) => c.status !== 'Resolved') || [];
+    complaints?.filter((c) => c.status !== 'Resolved' && c.status !== 'Denied') || [];
   const resolvedComplaints =
     complaints?.filter((c) => c.status === 'Resolved') || [];
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center bg-background p-4 sm:p-6 lg:p-8">
+    <main className="flex min-h-screen w-full flex-col items-center bg-muted/40 p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-4xl">
         <header className="text-center mb-12">
           <div className="mx-auto flex items-center justify-center bg-primary/10 p-4 rounded-full w-fit mb-4">
@@ -87,3 +87,5 @@ export default async function Home() {
     </main>
   );
 }
+
+    

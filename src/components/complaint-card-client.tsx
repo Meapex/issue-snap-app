@@ -5,19 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-
-type Complaint = {
-  id: string;
-  issue: string;
-  location_description: string;
-  status: 'New' | 'In Progress' | 'Resolved';
-  image_url: string;
-  created_at: string;
-  category: string;
-  department: string;
-  resolution_image_url: string | null;
-  resolved_at: string | null;
-};
+import type { Complaint } from '@/app/employee/dashboard/page';
 
 export function ComplaintCard({ complaint }: { complaint: Complaint }) {
   const [isMounted, setIsMounted] = useState(false);
@@ -53,7 +41,7 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
               <span className="font-semibold">Location:</span>{' '}
               {complaint.location_description}
             </p>
-            {!isMounted ? null : (
+             {isMounted ? (
               <>
                 <div className="text-xs text-muted-foreground">
                   Reported {reportedDate}
@@ -64,7 +52,7 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
                   </div>
                 )}
               </>
-            )}
+            ) : <div className='h-4 w-24 bg-muted animate-pulse rounded-md' />}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col items-center gap-1">
@@ -103,3 +91,5 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
     </Card>
   );
 }
+
+    

@@ -47,7 +47,7 @@ export default function EmployeeLoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4">
+    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Employee Login</CardTitle>
@@ -94,3 +94,5 @@ export default function EmployeeLoginPage() {
     </main>
   );
 }
+
+    

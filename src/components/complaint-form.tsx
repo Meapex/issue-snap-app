@@ -25,6 +25,12 @@ import { Badge } from './ui/badge';
 
 type Location = { latitude: number; longitude: number };
 
+// Function to generate a random 6-digit hash
+const generateHashId = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+
 export function ComplaintForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
@@ -167,6 +173,7 @@ export function ComplaintForm() {
         image_url: imageUrl,
         latitude: location.latitude,
         longitude: location.longitude,
+        hash_id: generateHashId(),
       };
 
       if (category) {
@@ -383,3 +390,5 @@ export function ComplaintForm() {
     </form>
   );
 }
+
+    

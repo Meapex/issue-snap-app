@@ -15,14 +15,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { login } from './actions';
 
 export default function EmployeeLoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,10 +36,14 @@ export default function EmployeeLoginPage() {
         description: result.error.message,
       });
       setIsLoading(false);
+    } else {
+       toast({
+        title: 'Login Successful',
+        description: "You'll be redirected to the dashboard.",
+      });
+      // The redirect is handled by the server action on success.
+      // We leave the loading state as is, as the page will navigate away.
     }
-    // The redirect is now handled by the server action on success.
-    // If we get here with no error, it means the redirect is in progress.
-    // We can leave the loading state as is.
   };
 
   return (
@@ -63,6 +65,7 @@ export default function EmployeeLoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -72,6 +75,7 @@ export default function EmployeeLoginPage() {
                 name="password"
                 type="password"
                 required
+                disabled={isLoading}
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>

@@ -50,7 +50,7 @@ export default function EmployeeLoginPage() {
       });
       // Redirect to the dashboard after a successful login.
       // The middleware will ensure the user is authenticated.
-      router.replace('/employee/dashboard');
+      router.push('/employee/dashboard');
     }
   };
 

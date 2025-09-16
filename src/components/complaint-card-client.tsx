@@ -91,5 +91,3 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
     </Card>
   );
 }
-
-    

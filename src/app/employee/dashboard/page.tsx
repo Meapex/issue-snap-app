@@ -65,7 +65,6 @@ import {
 
 export type Complaint = {
   id: string;
-  hash_id: string;
   issue: string;
   location_description: string;
   status: 'New' | 'In Progress' | 'Resolved' | 'Denied';
@@ -80,7 +79,7 @@ export type Complaint = {
 };
 
 function formatDate(dateString: string | null) {
-  if (!dateString) return 'N/A';
+  if (!dateString) return null;
   return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -194,7 +193,7 @@ export default function EmployeeDashboard() {
       );
       toast({
         title: 'Complaint Denied',
-        description: `Complaint #${complaintToDeny.hash_id} has been marked as denied.`,
+        description: `Complaint has been marked as denied.`,
       });
     }
     setIsDenying(false);
@@ -381,7 +380,6 @@ export default function EmployeeDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
                     <TableHead>Issue Photo</TableHead>
                     <TableHead>Resolution Photo</TableHead>
                     <TableHead>Issue</TableHead>
@@ -397,7 +395,6 @@ export default function EmployeeDashboard() {
                 <TableBody>
                   {complaints.map((complaint) => (
                     <TableRow key={complaint.id} className="hover:bg-muted/50">
-                      <TableCell className="font-mono text-xs">#{complaint.hash_id}</TableCell>
                       <TableCell>
                         <Image
                           src={complaint.image_url}
@@ -437,15 +434,14 @@ export default function EmployeeDashboard() {
                         </button>
                       </TableCell>
                       {isMounted ? (
-                        <>
                           <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                          <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
-                        </>
-                      ) : (
-                        <>
+                        ) : (
                            <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
-                          <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
-                        </>
+                      )}
+                      {isMounted ? (
+                          <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                        ) : (
+                           <TableCell><div className='w-24 h-4 bg-muted rounded-md animate-pulse'/></TableCell>
                       )}
                       <TableCell>
                         <Badge
@@ -508,7 +504,7 @@ export default function EmployeeDashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to deny this complaint?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will mark complaint #{complaintToDeny?.hash_id} as "Denied". This cannot be undone.
+              This action will mark this complaint as "Denied". This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

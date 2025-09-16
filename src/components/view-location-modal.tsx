@@ -28,7 +28,7 @@ export function ViewLocationModal({
         <DialogHeader>
           <DialogTitle>Complaint Location</DialogTitle>
           <DialogDescription>
-            Location for complaint #{complaint.hash_id}: {complaint.issue}
+            Location for complaint: {complaint.issue}
           </DialogDescription>
         </DialogHeader>
         <div className="aspect-video w-full rounded-md overflow-hidden border">

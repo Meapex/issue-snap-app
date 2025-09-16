@@ -32,18 +32,23 @@ export function ViewLocationModal({
           </DialogDescription>
         </DialogHeader>
         <div className="aspect-video w-full rounded-md overflow-hidden border">
-           <iframe
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            loading="lazy"
-            allowFullScreen
-            src={mapUrl}
-          ></iframe>
+          {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
+             <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              src={mapUrl}
+            ></iframe>
+          ) : (
+            <div className='w-full h-full bg-muted flex flex-col items-center justify-center text-center p-4'>
+                <p className='font-semibold text-destructive'>Map Not Configured</p>
+                <p className='text-sm text-muted-foreground mt-2'>Please add your Google Maps API key to the .env.local file to enable this feature.</p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
-    

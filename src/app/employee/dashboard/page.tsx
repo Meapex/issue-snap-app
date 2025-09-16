@@ -65,7 +65,13 @@ export type Complaint = {
 
 function formatDate(dateString: string | null) {
   if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleString();
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 const chartConfig = {
@@ -139,7 +145,7 @@ export default function EmployeeDashboard() {
     setSelectedComplaint(null);
   };
 
-  const { totalComplaints, newComplaints, resolvedComplaints, chartData } =
+  const { totalComplaints, newComplaints, resolvedComplaints, chartData, statusChartData } =
     useMemo(() => {
       const categoryCounts = complaints.reduce((acc, complaint) => {
         const category = complaint.category || 'Other';
@@ -154,13 +160,23 @@ export default function EmployeeDashboard() {
           fill: `var(--color-${name.replace(' ', '')})`,
         }))
         .sort((a, b) => b.complaints - a.complaints);
+      
+      const newCount = complaints.filter((c) => c.status === 'New').length;
+      const resolvedCount = complaints.filter((c) => c.status === 'Resolved').length;
+      const inProgressCount = complaints.length - newCount - resolvedCount;
+
+      const statusChartData = [
+          { status: 'New', count: newCount, fill: 'hsl(var(--destructive))' },
+          { status: 'In Progress', count: inProgressCount, fill: 'hsl(var(--secondary-foreground))' },
+          { status: 'Resolved', count: resolvedCount, fill: 'hsl(var(--primary))' },
+      ]
 
       return {
         totalComplaints: complaints.length,
-        newComplaints: complaints.filter((c) => c.status === 'New').length,
-        resolvedComplaints: complaints.filter((c) => c.status === 'Resolved')
-          .length,
+        newComplaints: newCount,
+        resolvedComplaints: resolvedCount,
         chartData,
+        statusChartData,
       };
     }, [complaints]);
 
@@ -222,7 +238,7 @@ export default function EmployeeDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="col-span-4">
               <CardHeader>
-                <CardTitle>Overview</CardTitle>
+                <CardTitle>Overview by Category</CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
                 <ChartContainer config={chartConfig} className="h-[350px] w-full">
@@ -249,7 +265,11 @@ export default function EmployeeDashboard() {
                     <Bar
                       dataKey="complaints"
                       radius={[4, 4, 0, 0]}
-                    />
+                    >
+                      {chartData.map((entry) => (
+                        <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ChartContainer>
               </CardContent>
@@ -272,16 +292,15 @@ export default function EmployeeDashboard() {
                       content={<ChartTooltipContent hideLabel />}
                     />
                     <Pie
-                      data={[
-                        { status: 'New', count: newComplaints, fill: 'hsl(var(--destructive))' },
-                        { status: 'In Progress', count: totalComplaints - newComplaints - resolvedComplaints, fill: 'hsl(var(--secondary-foreground))' },
-                        { status: 'Resolved', count: resolvedComplaints, fill: 'hsl(var(--primary))' },
-                      ]}
+                      data={statusChartData}
                       dataKey="count"
                       nameKey="status"
                       innerRadius={60}
                       strokeWidth={5}
                     >
+                      {statusChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
                     </Pie>
                   </PieChart>
                 </ChartContainer>
@@ -313,7 +332,7 @@ export default function EmployeeDashboard() {
                 </TableHeader>
                 <TableBody>
                   {complaints.map((complaint) => (
-                    <TableRow key={complaint.id}>
+                    <TableRow key={complaint.id} className="hover:bg-muted/50">
                       <TableCell>
                         <Image
                           src={complaint.image_url}

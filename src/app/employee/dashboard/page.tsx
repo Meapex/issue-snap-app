@@ -103,6 +103,7 @@ const chartConfig = {
 export default function EmployeeDashboard() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
     null
   );
@@ -120,6 +121,7 @@ export default function EmployeeDashboard() {
   };
 
   useEffect(() => {
+    setIsMounted(true);
     const fetchComplaints = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -367,8 +369,8 @@ export default function EmployeeDashboard() {
                       </TableCell>
                       <TableCell>{complaint.department || 'N/A'}</TableCell>
                       <TableCell>{complaint.location_description}</TableCell>
-                      <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                      <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                      <TableCell>{isMounted ? formatDate(complaint.created_at) : ''}</TableCell>
+                      <TableCell>{isMounted ? formatDate(complaint.resolved_at) : ''}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -411,3 +413,5 @@ export default function EmployeeDashboard() {
     </>
   );
 }
+
+    

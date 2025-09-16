@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function EmployeeLayout({
@@ -12,45 +12,39 @@ export default function EmployeeLayout({
 }) {
   const supabase = createClient();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [sessionChecked, setSessionChecked] = useState(false);
+  const pathname = usePathname();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-         if (window.location.pathname !== '/employee/login' && window.location.pathname !== '/employee/signup') {
-            router.push('/employee/login');
-        }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
+        router.push('/employee/login');
+      } else {
+        setIsLoading(false);
       }
-      setLoading(false);
-      if (!sessionChecked) {
-        setSessionChecked(true);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
+        router.push('/employee/login');
+      } else {
+         // If there is a session or we are on a public page, stop loading
+        setIsLoading(false);
       }
     });
 
-    // Initial check in case the auth state is already settled
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-       if (!session) {
-         if (window.location.pathname !== '/employee/login' && window.location.pathname !== '/employee/signup') {
-            router.push('/employee/login');
-        }
-      }
-      setLoading(false);
-       if (!sessionChecked) {
-        setSessionChecked(true);
-      }
-    })();
-
+    checkSession();
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, [router, supabase, sessionChecked]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, router, supabase.auth]);
 
-  if (loading || !sessionChecked) {
+
+  if (isLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 sm:p-6 lg:p-8">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

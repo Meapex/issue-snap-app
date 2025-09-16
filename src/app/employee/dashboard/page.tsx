@@ -25,7 +25,6 @@ import {
   FileText,
   Loader2,
   LogOut,
-  Map,
   Newspaper,
 } from 'lucide-react';
 import {
@@ -49,7 +48,6 @@ import { ResolveComplaintModal } from '@/components/resolve-complaint-modal';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { ViewLocationModal } from '@/components/view-location-modal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,9 +119,6 @@ export default function EmployeeDashboard() {
     null
   );
   const [complaintToDeny, setComplaintToDeny] = useState<Complaint | null>(
-    null
-  );
-  const [complaintToView, setComplaintToView] = useState<Complaint | null>(
     null
   );
   const [isDenying, setIsDenying] = useState(false);
@@ -427,19 +422,21 @@ export default function EmployeeDashboard() {
                       </TableCell>
                       <TableCell>{complaint.department || 'N/A'}</TableCell>
                       <TableCell>
-                        <button onClick={() => setComplaintToView(complaint)} className='text-sm text-primary hover:underline flex items-center gap-1'>
-                          <Map size={14} /> {complaint.location_description}
-                        </button>
+                        {complaint.location_description}
                       </TableCell>
                       {isMounted ? (
-                          <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                        ) : (
-                           null
+                        <TableCell>{formatDate(complaint.created_at)}</TableCell>
+                      ) : (
+                        <TableCell>
+                          <div className="h-5 w-24 rounded-md bg-muted animate-pulse" />
+                        </TableCell>
                       )}
                       {isMounted ? (
-                          <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
-                        ) : (
-                           null
+                        <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                      ) : (
+                        <TableCell>
+                          <div className="h-5 w-24 rounded-md bg-muted animate-pulse" />
+                        </TableCell>
                       )}
                       <TableCell>
                         <Badge
@@ -491,12 +488,6 @@ export default function EmployeeDashboard() {
           onComplaintResolved={handleComplaintResolved}
         />
       )}
-      {complaintToView && (
-         <ViewLocationModal
-          complaint={complaintToView}
-          onOpenChange={() => setComplaintToView(null)}
-        />
-      )}
        <AlertDialog open={!!complaintToDeny} onOpenChange={(open) => !open && setComplaintToDeny(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -518,4 +509,4 @@ export default function EmployeeDashboard() {
   );
 }
 
-    
+  

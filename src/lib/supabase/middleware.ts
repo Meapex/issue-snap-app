@@ -23,12 +23,12 @@ export async function updateSession(request: NextRequest) {
             value,
             ...options,
           })
-          // Update the response's cookies to send back to the browser.
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // Update the response's cookies to send back to the browser.
           response.cookies.set({
             name,
             value,
@@ -42,12 +42,12 @@ export async function updateSession(request: NextRequest) {
             value: '',
             ...options,
           })
-           // Update the response's cookies to send back to the browser.
-          response = NextResponse.next({
+           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // Update the response's cookies to send back to the browser.
           response.cookies.set({
             name,
             value: '',
@@ -61,5 +61,5 @@ export async function updateSession(request: NextRequest) {
   // This will refresh the session cookie if needed
   await supabase.auth.getUser()
 
-  return response
+  return { supabase, response };
 }

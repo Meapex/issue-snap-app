@@ -35,7 +35,6 @@ export default function EmployeeLoginPage() {
       password,
     });
 
-    setIsLoading(false);
 
     if (error) {
       toast({
@@ -43,14 +42,16 @@ export default function EmployeeLoginPage() {
         title: 'Login Failed',
         description: error.message,
       });
+      setIsLoading(false);
     } else {
       toast({
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      // Redirect to the dashboard after a successful login.
-      // The middleware will ensure the user is authenticated.
-      router.push('/employee/dashboard');
+      // The middleware will handle redirecting to the dashboard
+      // after the session is established. We just need to refresh the page
+      // to let the middleware run again with the new session cookie.
+      router.refresh();
     }
   };
 

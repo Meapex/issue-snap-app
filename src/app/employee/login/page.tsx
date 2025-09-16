@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function EmployeeLoginPage() {
@@ -24,6 +25,7 @@ export default function EmployeeLoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +48,8 @@ export default function EmployeeLoginPage() {
         title: 'Login Successful',
         description: "You're now logged in. Redirecting...",
       });
-      // Redirect after a short delay to allow the user to see the toast.
-      setTimeout(() => {
-        window.location.href = '/employee/dashboard';
-      }, 1500);
+      // This will re-fetch the page and trigger the middleware to redirect.
+      router.refresh();
     }
   };
 

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ComplaintCard } from '@/components/complaint-card-client';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default async function Home() {
   const supabase = createClient();
@@ -11,12 +13,16 @@ export default async function Home() {
     .from('complaints')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(30);
 
   const ongoingComplaints =
-    complaints?.filter((c) => c.status !== 'Resolved' && c.status !== 'Denied') || [];
+    complaints?.filter(
+      (c) => c.status !== 'Resolved' && c.status !== 'Denied'
+    ) || [];
   const resolvedComplaints =
     complaints?.filter((c) => c.status === 'Resolved') || [];
+  const deniedComplaints =
+    complaints?.filter((c) => c.status === 'Denied') || [];
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center bg-muted/40 p-4 sm:p-6 lg:p-8">
@@ -51,12 +57,15 @@ export default async function Home() {
             Recent Complaints
           </h2>
           <Tabs defaultValue="ongoing" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="ongoing">
                 Ongoing ({ongoingComplaints.length})
               </TabsTrigger>
               <TabsTrigger value="resolved">
                 Resolved ({resolvedComplaints.length})
+              </TabsTrigger>
+              <TabsTrigger value="denied">
+                Denied ({deniedComplaints.length})
               </TabsTrigger>
             </TabsList>
             <TabsContent value="ongoing" className="mt-4 space-y-4">
@@ -81,11 +90,27 @@ export default async function Home() {
                 </p>
               )}
             </TabsContent>
+            <TabsContent value="denied" className="mt-4 space-y-4">
+              <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
+                <AlertCircle className="h-4 w-4 !text-destructive" />
+                <AlertTitle className='text-destructive'>Denied Complaints</AlertTitle>
+                <AlertDescription className='text-destructive/80'>
+                  These are issues that have been reviewed by an employee and marked as invalid or not actionable.
+                </AlertDescription>
+              </Alert>
+              {deniedComplaints.length > 0 ? (
+                deniedComplaints.map((complaint) => (
+                  <ComplaintCard key={complaint.id} complaint={complaint} />
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No denied complaints to show.
+                </p>
+              )}
+            </TabsContent>
           </Tabs>
         </section>
       </div>
     </main>
   );
 }
-
-    

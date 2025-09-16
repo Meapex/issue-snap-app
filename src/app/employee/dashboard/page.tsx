@@ -426,18 +426,10 @@ export default function EmployeeDashboard() {
                       </TableCell>
                       {isMounted ? (
                         <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                      ) : (
-                        <TableCell>
-                          <div className="h-5 w-24 rounded-md bg-muted animate-pulse" />
-                        </TableCell>
-                      )}
+                      ) : null}
                       {isMounted ? (
                         <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
-                      ) : (
-                        <TableCell>
-                          <div className="h-5 w-24 rounded-md bg-muted animate-pulse" />
-                        </TableCell>
-                      )}
+                      ) : null}
                       <TableCell>
                         <Badge
                           variant={

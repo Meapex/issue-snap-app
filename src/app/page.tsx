@@ -203,7 +203,7 @@ export default function Home() {
       <footer className="py-6 border-t bg-background">
         <div className="container mx-auto px-4 md:px-6 flex justify-center items-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} IssueSnap. A Google AI Project.
+            &copy; {new Date().getFullYear()} IssueSnap. Team Radicals Project.
           </p>
         </div>
       </footer>

@@ -49,9 +49,8 @@ export default function EmployeeLoginPage() {
         description: "You're now logged in.",
       });
       // The middleware will handle redirecting to the dashboard
-      // after the session is established. We just need to refresh the page
-      // to let the middleware run again with the new session cookie.
-      router.refresh();
+      // after the session is established. We just need to navigate there.
+      router.push('/employee/dashboard');
     }
   };
 

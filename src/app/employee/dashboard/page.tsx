@@ -20,7 +20,14 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Eye, Loader2, LogOut, Trash2, TrendingUp, Zap } from 'lucide-react';
+import {
+  CheckCircle,
+  Eye,
+  FileText,
+  Loader2,
+  LogOut,
+  Newspaper,
+} from 'lucide-react';
 import {
   BarChart,
   XAxis,
@@ -28,6 +35,10 @@ import {
   Tooltip,
   Bar,
   CartesianGrid,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 import {
   ChartContainer,
@@ -58,9 +69,28 @@ function formatDate(dateString: string | null) {
 }
 
 const chartConfig = {
-  total: {
+  complaints: {
     label: 'Complaints',
-    color: 'hsl(var(--primary))',
+  },
+  Pothole: {
+    label: 'Pothole',
+    color: 'hsl(var(--chart-1))',
+  },
+  Graffiti: {
+    label: 'Graffiti',
+    color: 'hsl(var(--chart-2))',
+  },
+  Trash: {
+    label: 'Trash',
+    color: 'hsl(var(--chart-3))',
+  },
+  'Broken Streetlight': {
+    label: 'Broken Streetlight',
+    color: 'hsl(var(--chart-4))',
+  },
+  Other: {
+    label: 'Other',
+    color: 'hsl(var(--chart-5))',
   },
 } satisfies ChartConfig;
 
@@ -73,7 +103,6 @@ export default function EmployeeDashboard() {
   const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
-
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -110,38 +139,30 @@ export default function EmployeeDashboard() {
     setSelectedComplaint(null);
   };
 
-  const analyticsData = useMemo(() => {
-    if (!complaints.length) return { chartData: [], topCategories: [] };
+  const { totalComplaints, newComplaints, resolvedComplaints, chartData } =
+    useMemo(() => {
+      const categoryCounts = complaints.reduce((acc, complaint) => {
+        const category = complaint.category || 'Other';
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
-    const categoryCounts = complaints.reduce((acc, complaint) => {
-      const category = complaint.category || 'Other';
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+      const chartData = Object.entries(categoryCounts)
+        .map(([name, total]) => ({
+          name,
+          complaints: total,
+          fill: `var(--color-${name.replace(' ', '')})`,
+        }))
+        .sort((a, b) => b.complaints - a.complaints);
 
-    const chartData = Object.entries(categoryCounts)
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total);
-
-    const topCategories = chartData.slice(0, 3);
-
-    return { chartData, topCategories };
-  }, [complaints]);
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'Trash':
-        return <Trash2 className="h-6 w-6 text-muted-foreground" />;
-      case 'Pothole':
-        return <TrendingUp className="h-6 w-6 text-muted-foreground" />;
-      case 'Graffiti':
-        return <Eye className="h-6 w-6 text-muted-foreground" />;
-      case 'Broken Streetlight':
-        return <Zap className="h-6 w-6 text-muted-foreground" />;
-      default:
-        return <Eye className="h-6 w-6 text-muted-foreground" />;
-    }
-  };
+      return {
+        totalComplaints: complaints.length,
+        newComplaints: complaints.filter((c) => c.status === 'New').length,
+        resolvedComplaints: complaints.filter((c) => c.status === 'Resolved')
+          .length,
+        chartData,
+      };
+    }, [complaints]);
 
   if (loading) {
     return (
@@ -154,184 +175,211 @@ export default function EmployeeDashboard() {
 
   return (
     <>
-      <main className="flex min-h-screen w-full flex-col bg-background p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-7xl mx-auto space-y-8">
-          <div className="flex justify-between items-center">
+      <main className="flex min-h-screen w-full flex-col bg-background">
+        <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
+          <div className="flex items-center justify-between space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Complaints Dashboard
             </h1>
-             <Button variant="outline" onClick={handleLogout}>
+            <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
           </div>
-
-          <section id="analytics">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-4">
-              Analytics
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Complaints by Category</CardTitle>
-                  <CardDescription>
-                    A breakdown of all reported issues by their category.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="min-h-[300px] w-full"
-                  >
-                    <BarChart
-                      accessibilityLayer
-                      data={analyticsData.chartData}
-                    >
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="name"
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `${value}`}
-                      />
-                      <Tooltip
-                        cursor={{ fill: 'hsl(var(--muted))' }}
-                        content={<ChartTooltipContent hideLabel />}
-                      />
-                      <Bar
-                        dataKey="total"
-                        fill="hsl(var(--primary))"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-              {analyticsData.topCategories.map((cat, index) => (
-                <Card key={index}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {cat.name}
-                    </CardTitle>
-                    {getCategoryIcon(cat.name)}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{cat.total}</div>
-                    <p className="text-xs text-muted-foreground">
-                      Total complaints
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          <section id="recent-complaints">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Complaints
+                </CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalComplaints}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">New Complaints</CardTitle>
+                <Newspaper className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{newComplaints}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Resolved Complaints
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{resolvedComplaints}</div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <Card className="col-span-4">
               <CardHeader>
-                <CardTitle>Recent Complaints</CardTitle>
+                <CardTitle>Overview</CardTitle>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                  <BarChart accessibilityLayer data={chartData}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `${value}`}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'hsl(var(--muted))' }}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Bar
+                      dataKey="complaints"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+            <Card className="col-span-4 md:col-span-3">
+              <CardHeader>
+                <CardTitle>Complaints by Status</CardTitle>
                 <CardDescription>
-                  Here are the latest issues reported by users.
+                  Distribution of new, in-progress, and resolved complaints.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Issue Photo</TableHead>
-                      <TableHead>Resolution Photo</TableHead>
-                      <TableHead>Issue</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Submitted At</TableHead>
-                      <TableHead>Resolved At</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {complaints.map((complaint) => (
-                      <TableRow key={complaint.id}>
-                        <TableCell>
+                <ChartContainer
+                  config={chartConfig}
+                  className="mx-auto aspect-square h-[300px]"
+                >
+                  <PieChart>
+                    <Tooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Pie
+                      data={[
+                        { status: 'New', count: newComplaints, fill: 'hsl(var(--destructive))' },
+                        { status: 'In Progress', count: totalComplaints - newComplaints - resolvedComplaints, fill: 'hsl(var(--secondary-foreground))' },
+                        { status: 'Resolved', count: resolvedComplaints, fill: 'hsl(var(--primary))' },
+                      ]}
+                      dataKey="count"
+                      nameKey="status"
+                      innerRadius={60}
+                      strokeWidth={5}
+                    >
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Complaints</CardTitle>
+              <CardDescription>
+                Here are the latest issues reported by users.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Issue Photo</TableHead>
+                    <TableHead>Resolution Photo</TableHead>
+                    <TableHead>Issue</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Submitted At</TableHead>
+                    <TableHead>Resolved At</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {complaints.map((complaint) => (
+                    <TableRow key={complaint.id}>
+                      <TableCell>
+                        <Image
+                          src={complaint.image_url}
+                          alt={complaint.issue}
+                          width={100}
+                          height={66}
+                          className="rounded-md object-cover"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {complaint.resolution_image_url ? (
                           <Image
-                            src={complaint.image_url}
-                            alt={complaint.issue}
+                            src={complaint.resolution_image_url}
+                            alt={`Resolution for ${complaint.issue}`}
                             width={100}
                             height={66}
                             className="rounded-md object-cover"
                           />
-                        </TableCell>
-                         <TableCell>
-                          {complaint.resolution_image_url ? (
-                            <Image
-                              src={complaint.resolution_image_url}
-                              alt={`Resolution for ${complaint.issue}`}
-                              width={100}
-                              height={66}
-                              className="rounded-md object-cover"
-                            />
-                          ) : (
-                            <div className="w-[100px] h-[66px] bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground">
-                              Not Resolved
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {complaint.issue}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {complaint.category || 'Other'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{complaint.department || 'N/A'}</TableCell>
-                        <TableCell>{complaint.location_description}</TableCell>
-                        <TableCell>
-                          {formatDate(complaint.created_at)}
-                        </TableCell>
-                         <TableCell>
-                          {formatDate(complaint.resolved_at)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              complaint.status === 'New'
-                                ? 'destructive'
-                                : complaint.status === 'In Progress'
-                                ? 'secondary'
-                                : 'default'
-                            }
+                        ) : (
+                          <div className="w-[100px] h-[66px] bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground">
+                            Not Resolved
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {complaint.issue}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {complaint.category || 'Other'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{complaint.department || 'N/A'}</TableCell>
+                      <TableCell>{complaint.location_description}</TableCell>
+                      <TableCell>{formatDate(complaint.created_at)}</TableCell>
+                      <TableCell>{formatDate(complaint.resolved_at)}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            complaint.status === 'New'
+                              ? 'destructive'
+                              : complaint.status === 'In Progress'
+                              ? 'secondary'
+                              : 'default'
+                          }
+                        >
+                          {complaint.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {complaint.status !== 'Resolved' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedComplaint(complaint)}
                           >
-                            {complaint.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {complaint.status !== 'Resolved' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedComplaint(complaint)}
-                            >
-                              Resolve
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </section>
+                            Resolve
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       </main>
       {selectedComplaint && (

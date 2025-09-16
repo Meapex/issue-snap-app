@@ -19,38 +19,34 @@ export default function EmployeeLayout({
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (pathname === '/employee/login' || pathname === '/employee/signup') {
-        if (session) {
-          router.replace('/employee/dashboard');
-        } else {
-          setIsLoading(false);
-        }
+      // If on a protected route and no session, redirect to login.
+      if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
+        router.replace('/employee/login');
       } else {
-        if (!session) {
-          router.replace('/employee/login');
-        } else {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
+    // Run the check on initial load.
     checkSession();
 
+    // Listen for auth changes.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (pathname === '/employee/login' || pathname === '/employee/signup') {
-        if (session) {
-          router.replace('/employee/dashboard');
-        }
-      } else {
-        if (!session) {
-          router.replace('/employee/login');
-        }
+      // If a session appears and we're on login/signup, redirect to dashboard.
+      if (session && (pathname === '/employee/login' || pathname === '/employee/signup')) {
+        router.replace('/employee/dashboard');
+      }
+      // If the session disappears and we are on a protected route, redirect to login.
+      else if (!session && pathname !== '/employee/login' && pathname !== '/employee/signup') {
+        router.replace('/employee/login');
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
+  // We only want to run this on mount and when the path changes.
+  // The onAuthStateChange handles all subsequent auth updates.
   }, [pathname, router, supabase.auth]);
 
   if (isLoading) {

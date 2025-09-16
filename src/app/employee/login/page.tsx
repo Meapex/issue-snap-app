@@ -48,9 +48,8 @@ export default function EmployeeLoginPage() {
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      // Instead of pushing to the dashboard, we refresh the page.
-      // The EmployeeLayout will detect the new session and handle the redirect.
-      router.refresh();
+      // The EmployeeLayout's onAuthStateChange listener will handle the redirect.
+      router.replace('/employee/dashboard');
     }
   };
 

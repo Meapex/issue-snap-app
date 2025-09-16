@@ -3,9 +3,9 @@ import { Camera, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ComplaintCard } from '@/components/complaint-card-client';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ComplaintCardClientOnly } from '@/components/complaint-card-client-only';
 
 export default async function Home() {
   const supabase = createClient();
@@ -71,7 +71,7 @@ export default async function Home() {
             <TabsContent value="ongoing" className="mt-4 space-y-4">
               {ongoingComplaints.length > 0 ? (
                 ongoingComplaints.map((complaint) => (
-                  <ComplaintCard key={complaint.id} complaint={complaint} />
+                  <ComplaintCardClientOnly key={complaint.id} complaint={complaint} />
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">
@@ -82,7 +82,7 @@ export default async function Home() {
             <TabsContent value="resolved" className="mt-4 space-y-4">
               {resolvedComplaints.length > 0 ? (
                 resolvedComplaints.map((complaint) => (
-                  <ComplaintCard key={complaint.id} complaint={complaint} />
+                  <ComplaintCardClientOnly key={complaint.id} complaint={complaint} />
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">
@@ -100,7 +100,7 @@ export default async function Home() {
               </Alert>
               {deniedComplaints.length > 0 ? (
                 deniedComplaints.map((complaint) => (
-                  <ComplaintCard key={complaint.id} complaint={complaint} />
+                  <ComplaintCardClientOnly key={complaint.id} complaint={complaint} />
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">

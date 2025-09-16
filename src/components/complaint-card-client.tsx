@@ -4,32 +4,14 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 import type { Complaint } from '@/app/employee/dashboard/page';
 
 export function ComplaintCard({ complaint }: { complaint: Complaint }) {
-  const [isMounted, setIsMounted] = useState(false);
-  const [reportedDate, setReportedDate] = useState('');
-  const [resolvedDate, setResolvedDate] = useState('');
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
-  useEffect(() => {
-    if (isMounted) {
-      setReportedDate(
-        formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true })
-      );
-      if (complaint.resolved_at) {
-        setResolvedDate(
-          formatDistanceToNow(new Date(complaint.resolved_at), {
-            addSuffix: true,
-          })
-        );
-      }
-    }
-  }, [complaint.created_at, complaint.resolved_at, isMounted]);
+  const reportedDate = formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true });
+  const resolvedDate = complaint.resolved_at 
+    ? formatDistanceToNow(new Date(complaint.resolved_at), { addSuffix: true })
+    : null;
 
   return (
     <Card>
@@ -41,18 +23,14 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
               <span className="font-semibold">Location:</span>{' '}
               {complaint.location_description}
             </p>
-             {isMounted ? (
-              <>
-                <div className="text-xs text-muted-foreground">
-                  Reported {reportedDate}
-                </div>
-                {complaint.resolved_at && resolvedDate && (
-                  <div className="text-xs text-green-600">
-                    Resolved {resolvedDate}
-                  </div>
-                )}
-              </>
-            ) : null}
+            <div className="text-xs text-muted-foreground">
+              Reported {reportedDate}
+            </div>
+            {resolvedDate && (
+              <div className="text-xs text-green-600">
+                Resolved {resolvedDate}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col items-center gap-1">

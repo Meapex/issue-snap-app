@@ -14,12 +14,14 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { login } from './actions';
 
 export default function EmployeeLoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,10 +36,14 @@ export default function EmployeeLoginPage() {
         title: 'Login Failed',
         description: result.error.message,
       });
+      setIsLoading(false);
+    } else {
+      toast({
+        title: 'Login Successful',
+        description: 'Redirecting you to the dashboard...',
+      });
+      router.push('/employee/dashboard');
     }
-    // No success case needed here, as the server action redirects on success.
-    // We only set loading to false if there's an error.
-    setIsLoading(false);
   };
 
   return (

@@ -244,35 +244,37 @@ export default function EmployeeDashboard() {
               </CardHeader>
               <CardContent className="pl-2">
                 <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                  <BarChart accessibilityLayer data={chartData}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(value) => `${value}`}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'hsl(var(--muted))' }}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar
-                      dataKey="complaints"
-                      radius={[4, 4, 0, 0]}
-                    >
-                      {chartData.map((entry) => (
-                        <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart accessibilityLayer data={chartData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `${value}`}
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'hsl(var(--muted))' }}
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Bar
+                        dataKey="complaints"
+                        radius={[4, 4, 0, 0]}
+                      >
+                        {chartData.map((entry) => (
+                          <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
@@ -288,23 +290,25 @@ export default function EmployeeDashboard() {
                   config={chartConfig}
                   className="mx-auto aspect-square h-[300px]"
                 >
-                  <PieChart>
-                    <Tooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Pie
-                      data={statusChartData}
-                      dataKey="count"
-                      nameKey="status"
-                      innerRadius={60}
-                      strokeWidth={5}
-                    >
-                      {statusChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                  </PieChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Pie
+                        data={statusChartData}
+                        dataKey="count"
+                        nameKey="status"
+                        innerRadius={60}
+                        strokeWidth={5}
+                      >
+                        {statusChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
@@ -413,5 +417,3 @@ export default function EmployeeDashboard() {
     </>
   );
 }
-
-    

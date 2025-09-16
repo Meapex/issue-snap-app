@@ -26,21 +26,22 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
 
   useEffect(() => {
     setIsMounted(true);
-    setReportedDate(
-      formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true })
-    );
-    if (complaint.resolved_at) {
-      setResolvedDate(
-        formatDistanceToNow(new Date(complaint.resolved_at), {
-          addSuffix: true,
-        })
+  }, []);
+  
+  useEffect(() => {
+    if (isMounted) {
+      setReportedDate(
+        formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true })
       );
+      if (complaint.resolved_at) {
+        setResolvedDate(
+          formatDistanceToNow(new Date(complaint.resolved_at), {
+            addSuffix: true,
+          })
+        );
+      }
     }
-  }, [complaint.created_at, complaint.resolved_at]);
-
-  if (!isMounted) {
-    return null;
-  }
+  }, [complaint.created_at, complaint.resolved_at, isMounted]);
 
   return (
     <Card>
@@ -52,13 +53,17 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
               <span className="font-semibold">Location:</span>{' '}
               {complaint.location_description}
             </p>
-            <div className="text-xs text-muted-foreground">
-              Reported {reportedDate}
-            </div>
-            {complaint.resolved_at && resolvedDate && (
-              <div className="text-xs text-green-600">
-                Resolved {resolvedDate}
-              </div>
+            {isMounted && (
+              <>
+                <div className="text-xs text-muted-foreground">
+                  Reported {reportedDate}
+                </div>
+                {complaint.resolved_at && resolvedDate && (
+                  <div className="text-xs text-green-600">
+                    Resolved {resolvedDate}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="grid grid-cols-2 gap-2">

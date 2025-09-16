@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -12,11 +13,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { login } from './actions';
 
 export default function EmployeeLoginPage() {
   const router = useRouter();
@@ -24,23 +25,18 @@ export default function EmployeeLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const result = await login({ email, password });
 
-
-    if (error) {
+    if (result.error) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message,
+        description: result.error,
       });
       setIsLoading(false);
     } else {
@@ -48,7 +44,9 @@ export default function EmployeeLoginPage() {
         title: 'Login Successful',
         description: "You're now logged in.",
       });
-      router.refresh();
+      // A push is better here than a refresh, as the server action has already
+      // established the session. The middleware will allow the navigation.
+      router.push('/employee/dashboard');
     }
   };
 

@@ -1,10 +1,23 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
+import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
   // updateSession will take care of refreshing the session cookie
   // if it's expired.
-  const { response, supabase } = await updateSession(request);
+  const response = await updateSession(request);
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+      },
+    }
+  );
 
   const {
     data: { session },

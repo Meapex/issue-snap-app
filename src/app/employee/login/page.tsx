@@ -49,8 +49,8 @@ export default function EmployeeLoginPage() {
         description: "You're now logged in.",
       });
       // The middleware will handle redirecting to the dashboard
-      // after the session is established. We just need to navigate there.
-      router.push('/employee/dashboard');
+      // after the session is established. We just need to refresh to trigger it.
+      router.refresh();
     }
   };
 

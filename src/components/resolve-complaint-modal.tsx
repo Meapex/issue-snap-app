@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Upload, CheckCircle, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
-import { ChangeEvent, useRef, useState, useTransition } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Complaint } from '@/app/employee/dashboard/page';
 import { verifyResolution } from '@/ai/flows/verify-resolution-flow';
@@ -91,6 +91,7 @@ export function ResolveComplaintModal({
     setIsVerifying(true);
     setVerificationError(null);
     setIsSubmitting(true);
+    let updatedComplaint: Complaint;
     
     try {
       // 1. Get original image as data URI for verification
@@ -105,7 +106,9 @@ export function ResolveComplaintModal({
 
       if (!verificationResult.isResolvedCorrectly) {
         setVerificationError(verificationResult.reasoning);
-        await supabase.from('complaints').update({ status: 'In Review' }).eq('id', complaint.id);
+        const {data, error} = await supabase.from('complaints').update({ status: 'In Review' }).eq('id', complaint.id).select().single();
+        if (error) throw error;
+        updatedComplaint = data as Complaint;
         toast({
           variant: 'destructive',
           title: 'Verification Failed',
@@ -114,6 +117,7 @@ export function ResolveComplaintModal({
         });
         setIsVerifying(false);
         setIsSubmitting(false);
+        onComplaintResolved(updatedComplaint);
         return;
       }
 
@@ -137,29 +141,27 @@ export function ResolveComplaintModal({
       const resolvedAt = new Date().toISOString();
 
       // 5. Update complaint in Supabase database
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('complaints')
         .update({
           status: 'Resolved',
           resolution_image_url: resolutionImageUrl,
           resolved_at: resolvedAt,
         })
-        .eq('id', complaint.id);
+        .eq('id', complaint.id)
+        .select()
+        .single();
         
       if (updateError) throw updateError;
       
-      const updatedComplaint: Complaint = {
-        ...complaint,
-        status: 'Resolved',
-        resolution_image_url: resolutionImageUrl,
-        resolved_at: resolvedAt,
-      };
+      updatedComplaint = updateData as Complaint;
 
       toast({
         title: 'Complaint Resolved!',
         description: 'AI has verified the resolution and the issue has been marked as resolved.',
       });
       onComplaintResolved(updatedComplaint);
+      onOpenChange(false);
     } catch (error: any) {
       console.error('Error resolving complaint:', JSON.stringify(error, null, 2));
       toast({
@@ -174,7 +176,7 @@ export function ResolveComplaintModal({
   };
 
   return (
-    <Dialog open onOpenChange={onOpenChange}>
+    <Dialog open onOpenChange={(open) => !isSubmitting && onOpenChange(open)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Resolve Complaint</DialogTitle>

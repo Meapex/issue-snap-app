@@ -143,7 +143,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
         (payload) => {
            if (payload.eventType === 'INSERT') {
             const newComplaint = payload.new as Complaint;
-            setComplaints((prev) => [newComplaint, ...prev]);
+            setComplaints((prev) => [newComplaint, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
           } else if (payload.eventType === 'UPDATE') {
             const updatedComplaint = payload.new as Complaint;
             setComplaints((prev) =>
@@ -163,6 +163,9 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
 
 
   const handleComplaintResolved = (updatedComplaint: Complaint) => {
+    setComplaints((prev) =>
+      prev.map((c) => (c.id === updatedComplaint.id ? updatedComplaint : c))
+    );
     setSelectedComplaint(null);
   };
 
@@ -170,10 +173,12 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
     if (!complaintToDeny) return;
 
     setIsDenying(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('complaints')
       .update({ status: 'Denied' })
-      .eq('id', complaintToDeny.id);
+      .eq('id', complaintToDeny.id)
+      .select()
+      .single();
     
     if (error) {
       toast({
@@ -184,13 +189,13 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
     } else {
       setComplaints((prev) =>
         prev.map((c) =>
-          c.id === complaintToDeny.id ? { ...c, status: 'Denied' } : c
+          c.id === complaintToDeny.id ? data as Complaint : c
         )
       );
       toast({
         variant: 'destructive',
         title: 'Complaint Denied',
-        description: `Complaint has been marked as denied.`,
+        description: `Complaint #${complaintToDeny.complaint_number} has been marked as denied.`,
       });
     }
     setIsDenying(false);

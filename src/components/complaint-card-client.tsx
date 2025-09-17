@@ -34,6 +34,8 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
         return 'default';
       case 'Denied':
         return 'destructive';
+      case 'In Review':
+        return 'outline';
       default:
         return 'secondary';
     }

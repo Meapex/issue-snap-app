@@ -13,11 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Upload, CheckCircle } from 'lucide-react';
+import { Loader2, Upload, CheckCircle, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useRef, useState, useTransition } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Complaint } from '@/app/employee/dashboard/page';
+import { verifyResolution } from '@/ai/flows/verify-resolution-flow';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 type ResolveComplaintModalProps = {
   complaint: Complaint;
@@ -31,13 +33,18 @@ export function ResolveComplaintModal({
   onComplaintResolved,
 }: ResolveComplaintModalProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageDataUri, setImageDataUri] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setVerificationError(null);
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 4 * 1024 * 1024) {
@@ -50,11 +57,29 @@ export function ResolveComplaintModal({
       }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUri = e.target?.result as string;
+        setImageDataUri(dataUri);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  const getBase64FromUrl = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+  }
+
   const handleSubmit = async () => {
-    if (!imageFile) {
+    if (!imageFile || !imageDataUri) {
       toast({
         variant: 'destructive',
         title: 'Missing Image',
@@ -63,10 +88,38 @@ export function ResolveComplaintModal({
       return;
     }
 
+    setIsVerifying(true);
+    setVerificationError(null);
     setIsSubmitting(true);
-
+    
     try {
-      // 1. Upload image to Supabase Storage
+      // 1. Get original image as data URI for verification
+      const originalPhotoDataUri = await getBase64FromUrl(complaint.image_url);
+
+      // 2. Call AI verification flow
+      const verificationResult = await verifyResolution({
+          originalPhotoDataUri,
+          resolutionPhotoDataUri: imageDataUri,
+          issueDescription: complaint.issue
+      });
+
+      if (!verificationResult.isResolvedCorrectly) {
+        setVerificationError(verificationResult.reasoning);
+        await supabase.from('complaints').update({ status: 'In Review' }).eq('id', complaint.id);
+        toast({
+          variant: 'destructive',
+          title: 'Verification Failed',
+          description: `AI determined the issue was not resolved. Reason: ${verificationResult.reasoning}`,
+          duration: 8000,
+        });
+        setIsVerifying(false);
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsVerifying(false);
+
+      // 3. Upload image to Supabase Storage
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `resolution-${uuidv4()}.${fileExt}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -75,7 +128,7 @@ export function ResolveComplaintModal({
 
       if (uploadError) throw uploadError;
 
-      // 2. Get public URL for the image
+      // 4. Get public URL for the image
       const { data: urlData } = supabase.storage
         .from('complaint-images')
         .getPublicUrl(fileName);
@@ -83,7 +136,7 @@ export function ResolveComplaintModal({
       const resolutionImageUrl = urlData.publicUrl;
       const resolvedAt = new Date().toISOString();
 
-      // 3. Update complaint in Supabase database
+      // 5. Update complaint in Supabase database
       const { error: updateError } = await supabase
         .from('complaints')
         .update({
@@ -104,7 +157,7 @@ export function ResolveComplaintModal({
 
       toast({
         title: 'Complaint Resolved!',
-        description: 'The issue has been marked as resolved.',
+        description: 'AI has verified the resolution and the issue has been marked as resolved.',
       });
       onComplaintResolved(updatedComplaint);
     } catch (error: any) {
@@ -115,6 +168,7 @@ export function ResolveComplaintModal({
         description: error.message || 'An unexpected error occurred.',
       });
     } finally {
+      setIsVerifying(false);
       setIsSubmitting(false);
     }
   };
@@ -125,7 +179,7 @@ export function ResolveComplaintModal({
         <DialogHeader>
           <DialogTitle>Resolve Complaint</DialogTitle>
           <DialogDescription>
-            Upload a photo of the resolved issue to close this complaint.
+            Upload a photo of the resolved issue. Our AI will verify if the resolution is correct before closing the complaint.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -148,6 +202,7 @@ export function ResolveComplaintModal({
                   variant="outline"
                   className="mt-2"
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={isSubmitting}
                 >
                   Choose File
                 </Button>
@@ -162,9 +217,30 @@ export function ResolveComplaintModal({
             accept="image/*"
             capture="environment"
           />
+
+          {isVerifying && (
+             <Alert>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <AlertTitle>AI Verification in Progress</AlertTitle>
+              <AlertDescription>
+                Our AI is comparing the images to verify the resolution. Please wait...
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {verificationError && (
+             <Alert variant="destructive">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>AI Rejection</AlertTitle>
+                <AlertDescription>
+                  {verificationError} Please upload a new, clearer photo of the completed work.
+                </AlertDescription>
+            </Alert>
+          )}
+
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancel</Button>
           <Button
             type="button"
             onClick={handleSubmit}
@@ -175,7 +251,7 @@ export function ResolveComplaintModal({
             ) : (
               <CheckCircle className="mr-2 h-4 w-4" />
             )}
-            Mark as Resolved
+            {isVerifying ? 'Verifying...' : 'Mark as Resolved'}
           </Button>
         </DialogFooter>
       </DialogContent>

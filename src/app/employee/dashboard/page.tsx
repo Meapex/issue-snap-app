@@ -7,7 +7,7 @@ export type Complaint = {
   complaint_number: number;
   issue: string;
   location_description: string;
-  status: 'New' | 'In Progress' | 'Resolved' | 'Denied';
+  status: 'New' | 'In Progress' | 'Resolved' | 'Denied' | 'In Review';
   image_url: string;
   created_at: string;
   latitude: number;

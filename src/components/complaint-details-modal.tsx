@@ -15,6 +15,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import type { Complaint } from '@/app/employee/dashboard/page';
 import { Badge } from './ui/badge';
+import { ShieldAlert } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 type ComplaintDetailsModalProps = {
   complaint: Complaint;
@@ -48,6 +50,8 @@ export function ComplaintDetailsModal({
         return 'default';
       case 'Denied':
         return 'destructive';
+      case 'In Review':
+          return 'outline'
       default:
         return 'secondary';
     }
@@ -62,6 +66,17 @@ export function ComplaintDetailsModal({
             Viewing full details for complaint ID #{complaint.complaint_number}.
           </DialogDescription>
         </DialogHeader>
+
+        {complaint.status === 'In Review' && (
+          <Alert variant="destructive" className="border-yellow-500 text-yellow-700 [&>svg]:text-yellow-700 dark:border-yellow-700 dark:text-yellow-400 dark:[&>svg]:text-yellow-400">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Resolution In Review</AlertTitle>
+            <AlertDescription>
+              The submitted resolution photo was flagged by AI for review. Please upload a clearer photo showing the issue has been fully resolved.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
             {/* Left Column */}
             <div>

@@ -48,19 +48,21 @@ const generateComplaintPrompt = ai.definePrompt({
   name: 'generateComplaintPrompt',
   input: {schema: GenerateComplaintFromImageInputSchema},
   output: {schema: GenerateComplaintFromImageOutputSchema},
-  prompt: `You are an AI assistant that helps users generate complaint drafts from images of issues.
+  prompt: `You are a highly accurate AI assistant that helps users generate complaint drafts from images of issues. Your primary goal is precision.
 
 You will receive a photo of the issue and a description of the location where the issue was photographed.
 
-Based on the image and location description, generate a draft complaint describing the problem.
+Based on the image and location description, generate a concise but descriptive draft complaint.
 
-Also, categorize the complaint into one of the following categories: ${complaintCategories.join(', ')}.
+Also, categorize the complaint into one of the following categories: ${complaintCategories.join(', ')}. Be strict in your categorization. If you are not confident, choose 'Other'.
 
-Finally, assign a department responsible for handling the complaint from the following list: ${departments.join(', ')}.
-- Potholes and Broken Streetlights should be 'Public Works'.
-- Trash should be 'Sanitation'.
-- Graffiti should be 'Community Services'.
-- Other issues should be 'General Administration'.
+Finally, assign a department responsible for handling the complaint from the following list. Follow these rules STRICTLY:
+- Potholes and Broken Streetlights MUST be 'Public Works'.
+- Trash and illegal dumping MUST be 'Sanitation'.
+- Graffiti MUST be 'Community Services'.
+- For any other issue, or if the issue is ambiguous, you MUST assign 'General Administration'.
+
+Do not deviate from these department assignments.
 
 Location Description: {{{locationDescription}}}
 Photo: {{media url=photoDataUri}}`,

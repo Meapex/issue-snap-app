@@ -28,6 +28,7 @@ import {
   LogOut,
   Newspaper,
   ShieldX,
+  ShieldAlert,
   Trash2,
   XCircle,
 } from 'lucide-react';
@@ -217,11 +218,13 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
       const resolvedCount = complaints.filter((c) => c.status === 'Resolved').length;
       const deniedCount = complaints.filter((c) => c.status === 'Denied').length;
       const inProgressCount = complaints.filter((c) => c.status === 'In Progress').length;
+      const inReviewCount = complaints.filter((c) => c.status === 'In Review').length;
 
 
       const statusChartData = [
           { status: 'New', count: newCount, fill: 'hsl(var(--chart-2))' },
           { status: 'In Progress', count: inProgressCount, fill: 'hsl(var(--chart-4))' },
+          { status: 'In Review', count: inReviewCount, fill: 'hsl(var(--chart-5))' },
           { status: 'Resolved', count: resolvedCount, fill: 'hsl(var(--chart-1))' },
           { status: 'Denied', count: deniedCount, fill: 'hsl(var(--destructive))' },
       ].filter(item => item.count > 0);
@@ -235,21 +238,41 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
       };
     }, [complaints]);
 
+  const getStatusVariant = (status: Complaint['status']) => {
+    switch (status) {
+      case 'New':
+        return 'secondary';
+      case 'In Progress':
+        return 'outline';
+      case 'Resolved':
+        return 'default';
+      case 'Denied':
+        return 'destructive';
+      case 'In Review':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <>
       <main className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center justify-between space-y-2 animate-fade-in p-4 bg-card rounded-lg border">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Complaints Dashboard
-            </h1>
-            <p className="text-muted-foreground">An overview of all reported issues.</p>
+        <div className="p-4 bg-card rounded-lg border">
+          <div className="flex items-center justify-between space-y-2 animate-fade-in">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                Complaints Dashboard
+              </h1>
+              <p className="text-muted-foreground">An overview of all reported issues.</p>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
         </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <Card className="transition-transform transform hover:-translate-y-1 hover:shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -455,19 +478,8 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
                      <DateCell dateString={complaint.created_at} />
                      <DateCell dateString={complaint.resolved_at} />
                     <TableCell>
-                      <Badge
-                        variant={
-                          complaint.status === 'New'
-                            ? 'secondary'
-                            : complaint.status === 'Resolved'
-                            ? 'default'
-                            : complaint.status === 'Denied'
-                            ? 'destructive'
-                            : complaint.status === 'In Progress'
-                            ? 'outline'
-                            : 'secondary'
-                        }
-                      >
+                      <Badge variant={getStatusVariant(complaint.status)}>
+                        {complaint.status === 'In Review' && <ShieldAlert className="mr-1 h-3 w-3" />}
                         {complaint.status}
                       </Badge>
                     </TableCell>
@@ -480,7 +492,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
                           >
                             <Eye className="mr-2 h-4 w-4" /> Details
                           </Button>
-                          {(complaint.status === 'New' || complaint.status === 'In Progress') && (
+                          {(complaint.status === 'New' || complaint.status === 'In Progress' || complaint.status === 'In Review') && (
                             <>
                               <Button
                                 variant="destructive"

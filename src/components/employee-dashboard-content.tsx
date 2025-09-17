@@ -370,7 +370,6 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
                       nameKey="status"
                       innerRadius={60}
                       strokeWidth={5}
-                      labelLine={false}
                       label={({
                         cx,
                         cy,

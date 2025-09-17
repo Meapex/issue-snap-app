@@ -345,14 +345,14 @@ export function ComplaintForm() {
                    <div className="flex items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
                     <HardHat className="h-6 w-6 text-muted-foreground" />
                     <div>
-                      <span className="font-semibold text-muted-foreground">Department</span>
+                      <div className="font-semibold text-muted-foreground">Department</div>
                       <p className="font-bold text-foreground">{department || 'N/A'}</p>
                     </div>
                   </div>
                    <div className="flex items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
                     <Wand2 className="h-6 w-6 text-muted-foreground" />
                     <div>
-                      <span className="font-semibold text-muted-foreground">Category</span>
+                      <div className="font-semibold text-muted-foreground">Category</div>
                       <p className="font-bold text-foreground">{category || 'N/A'}</p>
                     </div>
                   </div>

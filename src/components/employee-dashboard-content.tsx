@@ -66,9 +66,10 @@ import { ComplaintDetailsModal } from './complaint-details-modal';
 
 
 function DateCell({ dateString }: { dateString: string | null }) {
-  const [formattedDate, setFormattedDate] = useState<string | null>(null);
+  const [formattedDate, setFormattedDate] = useState<string>('...');
 
   useEffect(() => {
+    // This will only run on the client, preventing hydration mismatch
     if (dateString) {
       setFormattedDate(
         new Date(dateString).toLocaleString('en-US', {
@@ -79,12 +80,12 @@ function DateCell({ dateString }: { dateString: string | null }) {
           minute: '2-digit',
         })
       );
+    } else {
+      setFormattedDate('---');
     }
   }, [dateString]);
 
-  if (!dateString) return <TableCell className="text-muted-foreground/60">---</TableCell>;
-
-  return <TableCell suppressHydrationWarning>{formattedDate || '...'}</TableCell>;
+  return <TableCell suppressHydrationWarning>{formattedDate}</TableCell>;
 }
 
 const chartConfig = {

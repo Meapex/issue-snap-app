@@ -313,7 +313,7 @@ export default async function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t bg-background">
+      <footer className="py-6 border-t bg-background" suppressHydrationWarning>
         <div className="container mx-auto px-4 md:px-6 flex justify-center items-center">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} IssueSnap. A Project by Team Radicals.

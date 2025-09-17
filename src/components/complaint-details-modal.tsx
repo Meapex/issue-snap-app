@@ -10,7 +10,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import type { Complaint } from '@/app/employee/dashboard/page';
@@ -29,9 +28,9 @@ export function ComplaintDetailsModal({
 }: ComplaintDetailsModalProps) {
   const [submittedDate, setSubmittedDate] = useState('');
   const [resolvedDate, setResolvedDate] = useState('');
-  const { toast } = useToast();
 
   useEffect(() => {
+    // This will only run on the client, preventing hydration mismatch
     if (complaint.created_at) {
         setSubmittedDate(new Date(complaint.created_at).toLocaleString());
     }

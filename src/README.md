@@ -124,12 +124,12 @@ for insert
 to anon
 with check (true);
 
--- Policy: Allow all users to read all complaints
-create policy "Allow read access to everyone"
+-- Policy: Allow authenticated users (employees) to read all complaints
+create policy "Allow read access to authenticated users"
 on "public"."complaints"
 as permissive
 for select
-to public
+to authenticated
 using (true);
 
 -- Policy: Allow authenticated users (employees) to update complaints

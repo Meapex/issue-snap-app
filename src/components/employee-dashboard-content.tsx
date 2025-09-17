@@ -27,9 +27,7 @@ import {
   Loader2,
   LogOut,
   Newspaper,
-  ShieldX,
   ShieldAlert,
-  Trash2,
   XCircle,
 } from 'lucide-react';
 import {

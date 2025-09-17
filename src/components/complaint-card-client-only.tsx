@@ -19,27 +19,18 @@ export function ComplaintCardClientOnly({ complaint }: { complaint: Complaint })
 
 function ComplaintCardSkeleton() {
     return (
-      <div className="p-4 border rounded-lg bg-card">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-3 w-1/3 mt-2" />
+      <div className="w-full overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl flex flex-col border rounded-lg bg-card">
+        <Skeleton className="h-40 w-full" />
+        <div className="p-4 flex flex-col flex-grow">
+          <div className="flex justify-between items-start mb-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-6 w-24" />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-center gap-1">
-               <span className="text-xs font-semibold text-muted-foreground">
-                Issue
-              </span>
-              <Skeleton className="w-[150px] h-[100px] rounded-md" />
-            </div>
-             <div className="flex flex-col items-center gap-1">
-               <span className="text-xs font-semibold text-muted-foreground">
-                Resolution
-              </span>
-              <Skeleton className="w-[150px] h-[100px] rounded-md" />
-            </div>
-          </div>
+          <Skeleton className="h-5 w-full mb-1" />
+          <Skeleton className="h-5 w-3/4 mb-3" />
+          <Skeleton className="h-4 w-5/6 mb-3" />
+          <Skeleton className="h-4 w-1/2 mt-auto mb-4" />
+          <Skeleton className="h-10 w-full" />
         </div>
       </div>
     );

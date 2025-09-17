@@ -1,0 +1,134 @@
+
+'use client';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import type { Complaint } from '@/app/employee/dashboard/page';
+import { Badge } from './ui/badge';
+
+type ComplaintDetailsModalProps = {
+  complaint: Complaint;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function ComplaintDetailsModal({
+  complaint,
+  onOpenChange,
+}: ComplaintDetailsModalProps) {
+  const [submittedDate, setSubmittedDate] = useState('');
+  const [resolvedDate, setResolvedDate] = useState('');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (complaint.created_at) {
+        setSubmittedDate(new Date(complaint.created_at).toLocaleString());
+    }
+    if (complaint.resolved_at) {
+        setResolvedDate(new Date(complaint.resolved_at).toLocaleString());
+    }
+  }, [complaint]);
+
+  const getStatusVariant = () => {
+    switch (complaint.status) {
+      case 'New':
+        return 'secondary';
+      case 'In Progress':
+        return 'outline';
+      case 'Resolved':
+        return 'default';
+      case 'Denied':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Complaint Details: #{complaint.complaint_number}</DialogTitle>
+          <DialogDescription>
+            Viewing full details for complaint ID #{complaint.complaint_number}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            {/* Left Column */}
+            <div>
+                <h4 className="font-semibold mb-2 text-foreground">Issue Details</h4>
+                <div className="space-y-3">
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Status</p>
+                        <Badge variant={getStatusVariant()}>{complaint.status}</Badge>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Description</p>
+                        <p className="text-sm text-foreground">{complaint.issue}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Location</p>
+                        <p className="text-sm text-foreground">{complaint.location_description}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Category</p>
+                        <p className="text-sm text-foreground">{complaint.category}</p>
+                    </div>
+                     <div>
+                        <p className="text-sm font-medium text-muted-foreground">Department</p>
+                        <p className="text-sm text-foreground">{complaint.department}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Submission Date</p>
+                        <p className="text-sm text-foreground" suppressHydrationWarning>{submittedDate || '...'}</p>
+                    </div>
+                    {complaint.resolved_at && (
+                         <div>
+                            <p className="text-sm font-medium text-muted-foreground">Resolution Date</p>
+                            <p className="text-sm text-foreground" suppressHydrationWarning>{resolvedDate || '...'}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+            {/* Right Column */}
+            <div className="space-y-4">
+                <div>
+                    <h4 className="font-semibold mb-2 text-foreground">Complaint Image</h4>
+                    <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                         <Image src={complaint.image_url} alt="Complaint Image" fill className="object-cover" />
+                    </div>
+                </div>
+                {complaint.resolution_image_url && (
+                    <div>
+                        <h4 className="font-semibold mb-2 text-foreground">Resolution Image</h4>
+                        <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                            <Image src={complaint.resolution_image_url} alt="Resolution Image" fill className="object-cover" />
+                        </div>
+                    </div>
+                )}
+                 {!complaint.resolution_image_url && complaint.status === 'Resolved' && (
+                     <div>
+                        <h4 className="font-semibold mb-2 text-foreground">Resolution Image</h4>
+                        <div className="relative aspect-video w-full rounded-md overflow-hidden border bg-muted flex items-center justify-center">
+                            <p className='text-sm text-muted-foreground'>Image not provided.</p>
+                        </div>
+                    </div>
+                 )}
+            </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

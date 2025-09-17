@@ -22,6 +22,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
   CheckCircle,
+  Eye,
   FileText,
   Loader2,
   LogOut,
@@ -62,6 +63,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { Complaint } from '@/app/employee/dashboard/page';
+import { ComplaintDetailsModal } from './complaint-details-modal';
 
 
 function DateCell({ dateString }: { dateString: string | null }) {
@@ -114,12 +116,9 @@ const chartConfig = {
 
 export function EmployeeDashboardContent({ initialComplaints }: {initialComplaints: Complaint[]}) {
   const [complaints, setComplaints] = useState<Complaint[]>(initialComplaints);
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
-    null
-  );
-  const [complaintToDeny, setComplaintToDeny] = useState<Complaint | null>(
-    null
-  );
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [complaintToDeny, setComplaintToDeny] = useState<Complaint | null>(null);
+  const [complaintToShowDetails, setComplaintToShowDetails] = useState<Complaint | null>(null);
   const [isDenying, setIsDenying] = useState(false);
 
   const supabase = createClient();
@@ -399,6 +398,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
                   <TableHead>Issue</TableHead>
                   <TableHead>Photo</TableHead>
                   <TableHead>Resolution</TableHead>
@@ -414,6 +414,7 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
               <TableBody>
                 {complaints.map((complaint) => (
                   <TableRow key={complaint.id} className="hover:bg-muted/50 transition-colors">
+                     <TableCell className="font-semibold">#{complaint.complaint_number}</TableCell>
                     <TableCell className="font-medium max-w-xs truncate">
                       {complaint.issue}
                     </TableCell>
@@ -471,24 +472,33 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {(complaint.status === 'New' || complaint.status === 'In Progress') && (
-                        <div className='flex gap-2 justify-end'>
+                       <div className='flex gap-2 justify-end'>
                           <Button
-                            variant="destructive"
+                            variant="outline"
                             size="sm"
-                            onClick={() => setComplaintToDeny(complaint)}
+                            onClick={() => setComplaintToShowDetails(complaint)}
                           >
-                            <XCircle className="mr-2 h-4 w-4" /> Deny
+                            <Eye className="mr-2 h-4 w-4" /> Details
                           </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => setSelectedComplaint(complaint)}
-                          >
-                             <CheckCircle className="mr-2 h-4 w-4" /> Resolve
-                          </Button>
+                          {(complaint.status === 'New' || complaint.status === 'In Progress') && (
+                            <>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setComplaintToDeny(complaint)}
+                              >
+                                <XCircle className="mr-2 h-4 w-4" /> Deny
+                              </Button>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => setSelectedComplaint(complaint)}
+                              >
+                                 <CheckCircle className="mr-2 h-4 w-4" /> Resolve
+                              </Button>
+                            </>
+                          )}
                         </div>
-                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -521,6 +531,12 @@ export function EmployeeDashboardContent({ initialComplaints }: {initialComplain
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+       {complaintToShowDetails && (
+        <ComplaintDetailsModal
+          complaint={complaintToShowDetails}
+          onOpenChange={() => setComplaintToShowDetails(null)}
+        />
+      )}
     </>
   );
 }

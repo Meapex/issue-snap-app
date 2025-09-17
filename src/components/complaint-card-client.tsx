@@ -7,10 +7,14 @@ import Image from 'next/image';
 import type { Complaint } from '@/app/employee/dashboard/page';
 import { useEffect, useState } from 'react';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { ComplaintDetailsModal } from './complaint-details-modal';
+import { Eye } from 'lucide-react';
 
 export function ComplaintCard({ complaint }: { complaint: Complaint }) {
   const [reportedDate, setReportedDate] = useState<string | null>(null);
   const [resolvedDate, setResolvedDate] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   useEffect(() => {
     // This will only run on the client, preventing hydration mismatch
@@ -37,7 +41,8 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
 
 
   return (
-    <Card className="w-full overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl">
+    <>
+    <Card className="w-full overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl flex flex-col">
       <div className="relative h-40 w-full">
         <Image
           src={complaint.image_url}
@@ -51,24 +56,38 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
             </div>
         )}
       </div>
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
-            <Badge variant="outline">{complaint.category || 'Other'}</Badge>
+            <span className="font-bold text-sm text-muted-foreground">ID: #{complaint.complaint_number}</span>
             <Badge variant={getStatusVariant()}>{complaint.status}</Badge>
         </div>
-        <p className="font-semibold text-foreground mb-2 leading-tight">{complaint.issue}</p>
+        <p className="font-semibold text-foreground mb-2 leading-tight flex-grow">{complaint.issue}</p>
         <p className="text-sm text-muted-foreground mb-3">
           {complaint.location_description}
         </p>
-        <div className="text-xs text-muted-foreground" suppressHydrationWarning>
+
+        <div className="text-xs text-muted-foreground mt-auto" suppressHydrationWarning>
             {reportedDate ? `Reported ${reportedDate}` : 'Loading...'}
         </div>
+
         {complaint.resolved_at && (
             <div className="text-xs text-green-600 mt-1" suppressHydrationWarning>
             {resolvedDate ? `Resolved ${resolvedDate}` : ''}
             </div>
         )}
+
+        <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => setIsDetailsModalOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View Details
+        </Button>
       </CardContent>
     </Card>
+     {isDetailsModalOpen && (
+        <ComplaintDetailsModal
+          complaint={complaint}
+          onOpenChange={setIsDetailsModalOpen}
+        />
+      )}
+    </>
   );
 }

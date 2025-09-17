@@ -4,6 +4,7 @@ import { EmployeeDashboardClientOnly } from '@/components/employee-dashboard-cli
 
 export type Complaint = {
   id: string;
+  complaint_number: number;
   issue: string;
   location_description: string;
   status: 'New' | 'In Progress' | 'Resolved' | 'Denied';
